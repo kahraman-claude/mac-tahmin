@@ -1,6 +1,6 @@
 # Tahminler
 
-Son güncelleme: 2026-11-08 16:40 (UTC)
+Son güncelleme: 2026-11-08 16:48 (UTC)
 
 Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı. İstatistiksel tahmindir, bahis tavsiyesi değildir.
 
