@@ -26,6 +26,18 @@ import poisson_model as pm
 warnings.filterwarnings("ignore")
 
 
+def tr_saati(tarih, saat):
+    """football-data.co.uk saatleri İngiltere saatidir; Türkiye saatine çevirir (yaz/kış saati dahil).
+    'tarih' sütunu sonuçlarla eşleştirme için İngiltere tarihinde bırakılır; bu yalnızca gösterim içindir."""
+    if pd.isna(saat) or ":" not in str(saat):
+        return f"{tarih:%d.%m}"
+    try:
+        yerel = pd.Timestamp(f"{tarih.date()} {saat}").tz_localize("Europe/London")
+        return yerel.tz_convert("Europe/Istanbul").strftime("%d.%m %H:%M")
+    except Exception:
+        return f"{tarih:%d.%m}"
+
+
 def modeli_egit(df, lig, gun):
     dc, alfa = pm.ayarlari_uygula(lig)
     for k in ("HS", "AS", "HST", "AST"):
@@ -110,6 +122,7 @@ def lig_tahmini(lig, fikstur, gun):
         kg = 1 - M[0, :].sum() - M[:, 0].sum() + M[0, 0]
         en_olasi = sorted(((M[i, j], i, j) for i in range(6) for j in range(6)), reverse=True)[:3]
         satir = {"lig": a["ad"], "tarih": m.Date.date().isoformat(), "saat": m.get("Time", ""),
+                 "tr_zaman": tr_saati(m.Date, m.get("Time", "")),
                  "ev": m.HomeTeam, "deplasman": m.AwayTeam,
                  "beklenen_gol_ev": round(le, 2), "beklenen_gol_dep": round(ld, 2),
                  "model_1": round(p[0], 4), "model_X": round(p[1], 4), "model_2": round(p[2], 4),
@@ -130,16 +143,19 @@ def lig_tahmini(lig, fikstur, gun):
 
 def rapor_yaz(t, calisma):
     t = t.fillna({"uyari": "", "saat": ""})
+    if "tr_zaman" not in t:
+        t["tr_zaman"] = t.tarih
+    t["tr_zaman"] = t.tr_zaman.fillna(t.tarih)
     yuzde = lambda x: "" if pd.isna(x) else f"%{x * 100:.0f}"
     satir = [f"# Tahminler\n\nSon güncelleme: {calisma} (UTC)\n",
              "Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı. "
              "İstatistiksel tahmindir, bahis tavsiyesi değildir.\n"]
     for lig, g in t.groupby("lig", sort=False):
-        satir += [f"\n## {lig}\n", "| Tarih | Maç | 1 | X | 2 | 2,5 Üst | KG Var | En olası skor |",
+        satir += [f"\n## {lig}\n", "| Tarih (TR saati) | Maç | 1 | X | 2 | 2,5 Üst | KG Var | En olası skor |",
                   "|---|---|---|---|---|---|---|---|"]
         for _, r in g.iterrows():
             ek = lambda c: f" ({yuzde(r.get('duzeltilmis_' + c))})" if pd.notna(r.get("duzeltilmis_" + c)) else ""
-            satir.append(f"| {r.tarih} {r.saat} | {r.ev} – {r.deplasman} | {yuzde(r.model_1)}{ek('1')} | "
+            satir.append(f"| {r.tr_zaman} | {r.ev} – {r.deplasman} | {yuzde(r.model_1)}{ek('1')} | "
                          f"{yuzde(r.model_X)}{ek('X')} | {yuzde(r.model_2)}{ek('2')} | {yuzde(r['model_2.5ust'])} | "
                          f"{yuzde(r.model_kg_var)} | {r.en_olasi_skorlar.split(' | ')[0]} |")
         uy = g[g.uyari != ""]
