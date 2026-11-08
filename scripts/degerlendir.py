@@ -15,6 +15,7 @@ import pandas as pd
 
 import json
 
+from ayrisma import ayrisma_ozeti
 from ortak import KOK, LIGLER, RAPOR, TAHMIN, lig_dosyalari, takim_adi
 import poisson_model as pm
 
@@ -63,6 +64,8 @@ def site_yaz(m):
                                    "brier_model": round(float(olc(o[["model_1", "model_X", "model_2"]].values, yo)[1]), 4),
                                    "brier_piyasa": round(float(olc(o[["piyasa_1", "piyasa_X", "piyasa_2"]].values, yo)[1]), 4),
                                    "brier_duzeltilmis": round(float(olc(o[["duzeltilmis_1", "duzeltilmis_X", "duzeltilmis_2"]].values, yo)[1]), 4)}
+                kayit["ayrisma"] = ayrisma_ozeti(o[["model_1", "model_X", "model_2"]].values,
+                                                 o[["duzeltilmis_1", "duzeltilmis_X", "duzeltilmis_2"]].values, yo)
             son = g.sort_values("tarih", ascending=False).head(40)
             kayit["son_maclar"] = [{"tarih": r.tarih, "ev": takim_adi(r.ev), "dep": takim_adi(r.deplasman), "skor": r.skor,
                                     "model": [r.model_1, r.model_X, r.model_2], "sonuc": int(r.sonuc)} for _, r in son.iterrows()]

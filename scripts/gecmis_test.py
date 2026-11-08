@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
 
+from ayrisma import ayrisma_ozeti
 from ortak import KOK, LIGLER, lig_dosyalari
 import poisson_model as pm
 
@@ -74,7 +75,8 @@ def lig_testi(lig):
              "brier_lig_ortalamasi": round(float(b_sabit), 4), "brier_model": round(float(b_model), 4),
              "brier_oran": round(float(b_oran), 4), "brier_duzeltilmis": round(float(pm.brier(Pd, yy)), 4),
              "acik_kapanan": round(float((b_sabit - b_model) / (b_sabit - b_oran)), 4),
-             "emin_tahminler": emin, "kalibrasyon": kalibrasyon(Pm, yy), "sezonlar": sezonlar}
+             "emin_tahminler": emin, "kalibrasyon": kalibrasyon(Pm, yy), "sezonlar": sezonlar,
+             "ayrisma": ayrisma_ozeti(Pm[~np.isnan(Pd).any(1)], Pd[~np.isnan(Pd).any(1)], yy[~np.isnan(Pd).any(1)])}
     print(f"{sonuc['ad']}: {sonuc['n']} maç, isabet %{sonuc['isabet_model'] * 100:.1f}, Brier {b_model:.4f} "
           f"(lig ort. {b_sabit:.4f}, oranlar {b_oran:.4f}), açığın %{sonuc['acik_kapanan'] * 100:.0f}'ı kapandı")
     return sonuc

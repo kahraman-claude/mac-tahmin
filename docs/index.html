@@ -135,6 +135,28 @@ tr:last-child td { border-bottom: 0; }
 .dogru { color: var(--ev); font-weight: 600; }
 .yanlis { color: var(--dep); font-weight: 600; }
 
+/* Ayrışma */
+.ayrisma { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--cizgi); }
+.ayrisma h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.ay-satir { margin-top: 16px; }
+.ay-baslik { font-size: 0.95rem; margin-bottom: 8px; }
+.ay-baslik b { font-weight: 600; }
+.serit { position: relative; height: 30px; }
+.serit::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 2px; background: var(--cizgi); }
+.serit .bant { position: absolute; top: 9px; height: 12px; background: var(--ber); opacity: .35; border-radius: 6px; }
+.serit .isaret { position: absolute; top: 15px; transform: translate(-50%, -50%); }
+.isaret.model { width: 14px; height: 14px; border-radius: 50%; background: var(--yazi); }
+.isaret.piyasa { width: 14px; height: 14px; border-radius: 50%; background: var(--yuzey); border: 3px solid var(--soluk); }
+.isaret.gercek { width: 4px; height: 24px; border-radius: 2px; background: var(--ev); }
+.olcek { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--soluk); }
+.ay-degerler { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.88rem; color: var(--soluk); margin-top: 4px; }
+.ay-degerler b { color: var(--yazi); font-weight: 600; }
+.ay-degerler i { display: inline-block; vertical-align: middle; margin-right: 5px; }
+.ay-degerler i.model { width: 10px; height: 10px; border-radius: 50%; background: var(--yazi); }
+.ay-degerler i.piyasa { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--soluk); }
+.ay-degerler i.gercek { width: 3px; height: 12px; background: var(--ev); border-radius: 1px; }
+.hukum { font-size: 1rem; margin: 14px 0 0; max-width: 62ch; }
+
 footer { margin-top: 40px; color: var(--soluk); font-size: 0.88rem; max-width: 62ch; }
 footer p { margin: 0 0 8px; }
 
@@ -329,6 +351,43 @@ function kalibrasyonGrafik(noktalar) {
   return `<svg viewBox="0 0 ${G} ${Y}" role="img" aria-label="Kalibrasyon: ${aciklama}">${s}</svg>`;
 }
 
+function ayrismaSatiri(g, baslik) {
+  if (!g || !g.n) return "";
+  const ENB = 0.8, x = v => (Math.min(v, ENB) / ENB * 100).toFixed(1);
+  const alt = Math.max(0, g.gercek - g.hata_payi), ust = Math.min(ENB, g.gercek + g.hata_payi);
+  return `<div class="ay-satir">
+    <div class="ay-baslik">${baslik} <span style="color:var(--soluk)">(${g.n.toLocaleString("tr-TR")} sonuç)</span></div>
+    <div class="serit" role="img" aria-label="${baslik}: model ortalama ${yuzde(g.model)}, piyasa ${yuzde(g.piyasa)}, gerçekleşen ${yuzde(g.gercek)}">
+      <span class="bant" style="left:${x(alt)}%;width:${(x(ust) - x(alt)).toFixed(1)}%"></span>
+      <span class="isaret piyasa" style="left:${x(g.piyasa)}%"></span>
+      <span class="isaret model" style="left:${x(g.model)}%"></span>
+      <span class="isaret gercek" style="left:${x(g.gercek)}%"></span>
+    </div>
+    <div class="olcek"><span>%0</span><span>%20</span><span>%40</span><span>%60</span><span>%80</span></div>
+    <div class="ay-degerler"><span><i class="model"></i>Model <b>${yuzde(g.model)}</b></span><span><i class="piyasa"></i>Piyasa <b>${yuzde(g.piyasa)}</b></span><span><i class="gercek"></i>Gerçekleşen <b>${yuzde(g.gercek)}</b></span></div>
+  </div>`;
+}
+
+function ayrismaCiz(a, kaynak) {
+  if (!a) return "";
+  const gruplar = [a.model_iyimser, a.model_kotumser].filter(g => g && g.n);
+  if (!gruplar.length) return `<div class="ayrisma"><h3>Model piyasadan ayrıştığında kim haklı?</h3>
+    <p class="not" style="font-size:.95rem">${kaynak} henüz model ile piyasanın ${Math.round(a.esik * 100)} puandan fazla ayrıştığı bir sonuç yok.</p></div>`;
+  let model = 0, piyasa = 0;
+  gruplar.forEach(g => { model += g.n * Math.abs(g.gercek - g.model); piyasa += g.n * Math.abs(g.gercek - g.piyasa); });
+  const hukum = piyasa < model
+    ? "Ayrışmalarda gerçekleşen oran piyasanın söylediğine daha yakın: model piyasadan farklı düşündüğünde çoğunlukla piyasa haklı çıkıyor."
+    : "Ayrışmalarda gerçekleşen oran modelin söylediğine daha yakın: model piyasadan farklı düşündüğünde çoğunlukla model haklı çıkıyor.";
+  const f = a.favori_farkli;
+  const fav = f && f.n ? ` Favorileri farklı olan ${f.n} maçta modelin favorisi ${yuzde(f.model_hakli)}, piyasanın favorisi ${yuzde(f.piyasa_hakli)} oranında kazandı.` : "";
+  const az = Math.min(...gruplar.map(g => g.n)) < 30 ? " Örneklem henüz küçük; sonuç şansa çok açık." : "";
+  return `<div class="ayrisma"><h3>Model piyasadan ayrıştığında kim haklı?</h3>
+    <p class="not" style="font-size:.95rem">${kaynak} model bir sonuca piyasadan en az ${Math.round(a.esik * 100)} puan farklı olasılık verdiğinde, o sonucun gerçekte ne sıklıkla olduğu. Yeşil çizgi gerçekleşen oran; etrafındaki gri bant tahmini hata payı.</p>
+    ${ayrismaSatiri(a.model_iyimser, "Model daha iyimserken")}
+    ${ayrismaSatiri(a.model_kotumser, "Model daha kötümserken")}
+    <p class="hukum">${hukum}${fav}${az}</p></div>`;
+}
+
 function canliCiz() {
   const kutu = document.getElementById("canli");
   const p = durum.performans?.ligler?.[durum.lig];
@@ -347,7 +406,8 @@ function canliCiz() {
     <p class="ozet">Canlı kayıtta <span class="sayi">${p.n}</span> maç var. Model en olası dediği sonucu <span class="sayi">${yuzde(p.isabet)}</span> oranında bildi; Brier skoru <span class="sayi">${ondalik(p.brier, 3)}</span>.</p>
     ${piy}
     <table><thead><tr><th>Tarih</th><th>Maç</th><th class="s">Skor</th><th class="s">Sonuca verilen olasılık</th></tr></thead><tbody>${satirlar}</tbody></table>
-    <p class="not">Yeşil: modelin en olası dediği sonuç gerçekleşti. Kırmızı: gerçekleşmedi.</p></div>`;
+    <p class="not">Yeşil: modelin en olası dediği sonuç gerçekleşti. Kırmızı: gerçekleşmedi.</p>
+    ${ayrismaCiz(p.ayrisma, "Canlı kayıtta")}</div>`;
 }
 
 function gecmisCiz() {
@@ -363,7 +423,8 @@ function gecmisCiz() {
         <p class="not">Noktalar kesikli çizgiye ne kadar yakınsa olasılıklar o kadar dürüst. Büyük nokta daha çok tahmin demek.</p></div>
       <div><h3 style="margin:0 0 6px;font-size:1.05rem">Model emin olduğunda</h3>
         <table><thead><tr><th>Verdiği olasılık</th><th class="s">Maç</th><th class="s">İsabet</th></tr></thead><tbody>${emin}</tbody></table></div>
-    </div></div>`;
+    </div>
+    ${ayrismaCiz(g.ayrisma, "Geçmiş testte")}</div>`;
 }
 
 function hepsiniCiz() {
