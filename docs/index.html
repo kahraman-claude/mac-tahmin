@@ -192,6 +192,7 @@ const ondalik = (x, n = 2) => x == null ? "–" : Number(x).toFixed(n).replace("
 const kacis = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 async function yukle(ad) {
+  if (window.GOMULU_VERI) return window.GOMULU_VERI[ad] ?? null;   // tek dosyalık kopyada veri sayfanın içinde
   try {
     const r = await fetch(`veri/${ad}.json?t=${Date.now()}`);
     return r.ok ? await r.json() : null;
