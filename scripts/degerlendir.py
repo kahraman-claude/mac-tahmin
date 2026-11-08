@@ -13,7 +13,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from ortak import LIGLER, RAPOR, TAHMIN, lig_dosyalari
+import json
+
+from ortak import KOK, LIGLER, RAPOR, TAHMIN, lig_dosyalari, takim_adi
 import poisson_model as pm
 
 warnings.filterwarnings("ignore")
@@ -34,10 +36,46 @@ def olc(P, y):
     return np.mean(np.argmax(P, 1) == y), np.mean(((P - e) ** 2).sum(1))
 
 
+def kalibrasyon(P, y, kutular=(0, .1, .2, .3, .4, .5, .6, .7, .8, 1.0001)):
+    """Modelin verdiği olasılıkları aralıklara böler; her aralıkta ortalama olasılık ile gerçekleşme oranı."""
+    p = P.ravel(); g = np.eye(3)[y].ravel(); sonuc = []
+    for lo, hi in zip(kutular[:-1], kutular[1:]):
+        m = (p >= lo) & (p < hi)
+        if m.sum():
+            sonuc.append({"olasilik": round(float(p[m].mean()), 4), "gercek": round(float(g[m].mean()), 4), "n": int(m.sum())})
+    return sonuc
+
+
+def site_yaz(m):
+    ligler = {}
+    for lig, a in LIGLER.items():
+        g = m[m.lig == a["ad"]] if len(m) else m
+        kayit = {"ad": a["ad"], "n": int(len(g))}
+        if len(g):
+            y = g.sonuc.values.astype(int); P = g[["model_1", "model_X", "model_2"]].values
+            acc, br = olc(P, y)
+            kayit.update({"isabet": round(float(acc), 4), "brier": round(float(br), 4),
+                          "kalibrasyon": kalibrasyon(P, y)})
+            o = g.dropna(subset=["piyasa_1"]) if "piyasa_1" in g else g.iloc[:0]
+            if len(o):
+                yo = o.sonuc.values.astype(int)
+                kayit["piyasa"] = {"n": int(len(o)),
+                                   "brier_model": round(float(olc(o[["model_1", "model_X", "model_2"]].values, yo)[1]), 4),
+                                   "brier_piyasa": round(float(olc(o[["piyasa_1", "piyasa_X", "piyasa_2"]].values, yo)[1]), 4),
+                                   "brier_duzeltilmis": round(float(olc(o[["duzeltilmis_1", "duzeltilmis_X", "duzeltilmis_2"]].values, yo)[1]), 4)}
+            son = g.sort_values("tarih", ascending=False).head(40)
+            kayit["son_maclar"] = [{"tarih": r.tarih, "ev": takim_adi(r.ev), "dep": takim_adi(r.deplasman), "skor": r.skor,
+                                    "model": [r.model_1, r.model_X, r.model_2], "sonuc": int(r.sonuc)} for _, r in son.iterrows()]
+        ligler[lig] = kayit
+    hedef = KOK / "docs" / "veri" / "performans.json"
+    hedef.parent.mkdir(parents=True, exist_ok=True)
+    hedef.write_text(json.dumps({"ligler": ligler}, ensure_ascii=False), encoding="utf-8")
+
+
 def main():
     arsiv = TAHMIN / "arsiv.csv"
     if not arsiv.exists():
-        print("Henüz arşivlenmiş tahmin yok."); return
+        print("Henüz arşivlenmiş tahmin yok."); site_yaz(pd.DataFrame()); return
     t = pd.read_csv(arsiv)
     t = t[t.calisma_zamani.str[:10] < t.tarih]                     # yalnızca maç gününden önce yapılmış tahminler
     t = t.sort_values("calisma_zamani").groupby(["lig", "tarih", "ev", "deplasman"]).tail(1)
@@ -64,6 +102,7 @@ def main():
         for _, r in g.sort_values("tarih", ascending=False).head(20).iterrows():
             satir.append(f"| {r.tarih} | {r.ev} – {r.deplasman} | {r.skor} | "
                          f"%{r.model_1 * 100:.0f} / %{r.model_X * 100:.0f} / %{r.model_2 * 100:.0f} |")
+    site_yaz(m)
     RAPOR.mkdir(exist_ok=True)
     (RAPOR / "performans.md").write_text("\n".join(satir) + "\n", encoding="utf-8")
     print(f"raporlar/performans.md yazıldı ({len(m)} değerlendirilmiş maç)")

@@ -12,6 +12,8 @@ Bilgisayarının açık olmasına gerek yoktur. İstatistiksel tahmindir, bahis 
 
 ## Nereye bakmalı?
 
+**Web sayfası:** https://kahraman-claude.github.io/mac-tahmin/ — maçlar, model ve piyasa olasılıkları, skor matrisi ve başarı kaydı.
+
 | Dosya | İçerik |
 |---|---|
 | `raporlar/bu_hafta.md` | Önümüzdeki maçların tahmin tablosu |
@@ -27,6 +29,8 @@ scripts/veri_indir.py        football-data.co.uk indirme
 scripts/api_football_veri.py API-Football oran arşivi (isteğe bağlı)
 scripts/tahmin.py            Tahmin üretme
 scripts/degerlendir.py       Canlı performans kaydı
+scripts/gecmis_test.py       Geçmiş test (model değişince elle çalıştırılır)
+docs/                        Web sayfası (GitHub Pages) ve sayfanın okuduğu veri dosyaları
 data/                        Sezon dosyaları (otomatik güncellenir)
 .github/workflows/gunluk.yml Günlük çalışma planı
 ```

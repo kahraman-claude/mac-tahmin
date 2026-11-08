@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maç Tahmin</title>
+<meta name="description" content="Süper Lig ve Premier Lig için istatistiksel maç olasılıkları ve modelin başarı kaydı.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --zemin: #F3F5F2;
+  --yuzey: #FFFFFF;
+  --yazi: #16231D;
+  --soluk: #5B6B63;
+  --cizgi: #D9E0DB;
+  --ev: #0E6E66;
+  --ber: #A3AEA8;
+  --dep: #B42350;
+  --ev-yazi: #FFFFFF;
+  --ber-yazi: #16231D;
+  --dep-yazi: #FFFFFF;
+  --isi: 14, 110, 102;
+  --odak: #0E6E66;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --zemin: #16201C; --yuzey: #1D2924; --yazi: #E7EEEA; --soluk: #9AABA2; --cizgi: #2E3B35;
+    --ev: #3BB3A6; --ber: #5E6C66; --dep: #F06B8F;
+    --ev-yazi: #0F1714; --ber-yazi: #E7EEEA; --dep-yazi: #1A0A10;
+    --isi: 59, 179, 166; --odak: #3BB3A6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --zemin: #16201C; --yuzey: #1D2924; --yazi: #E7EEEA; --soluk: #9AABA2; --cizgi: #2E3B35;
+  --ev: #3BB3A6; --ber: #5E6C66; --dep: #F06B8F;
+  --ev-yazi: #0F1714; --ber-yazi: #E7EEEA; --dep-yazi: #1A0A10;
+  --isi: 59, 179, 166; --odak: #3BB3A6; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--zemin); color: var(--yazi);
+  font: 400 16px/1.55 "Barlow", system-ui, sans-serif;
+}
+.sayfa { max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
+.sayi, h1, h2, h3, .yuzde, .segment button { font-family: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--odak); outline-offset: 2px; border-radius: 4px; }
+
+/* Başlık */
+header { padding: 28px 0 8px; display: grid; gap: 14px; }
+.ust { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 2.4rem; line-height: 1; font-weight: 700; letter-spacing: -0.01em; }
+.guncelleme { color: var(--soluk); font-size: 0.9rem; }
+.segment { display: inline-flex; background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 999px; padding: 3px; width: max-content; }
+.segment button {
+  appearance: none; border: 0; background: transparent; color: var(--soluk); font-size: 1.05rem; font-weight: 600;
+  padding: 6px 16px; border-radius: 999px; cursor: pointer;
+}
+.segment button[aria-pressed="true"] { background: var(--yazi); color: var(--zemin); }
+
+h2 { font-size: 1.5rem; font-weight: 700; margin: 36px 0 4px; line-height: 1.15; }
+.alt-baslik { color: var(--soluk); margin: 0 0 14px; max-width: 62ch; }
+
+/* Maç listesi */
+.liste { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 14px; }
+.mac { padding: 16px 16px 14px; border-top: 1px solid var(--cizgi); }
+.mac:first-child { border-top: 0; }
+.mac.gecmis { opacity: 0.55; }
+.mac-ust { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--soluk); font-size: 0.88rem; margin-bottom: 4px; }
+.takimlar { display: grid; grid-template-columns: 1fr 1fr; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+.takim { font-weight: 600; font-size: 1.08rem; line-height: 1.2; }
+.takim.dep { text-align: right; }
+
+.cubuk { display: flex; height: 34px; border-radius: 8px; overflow: hidden; }
+.cubuk span { display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; }
+.cubuk .yuzde { font-size: 1.05rem; font-weight: 700; }
+.c1 { background: var(--ev); color: var(--ev-yazi); }
+.cx { background: var(--ber); color: var(--ber-yazi); }
+.c2 { background: var(--dep); color: var(--dep-yazi); }
+.piyasa-satir { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 8px; margin-top: 7px; }
+.piyasa-satir .etiket { font-size: 0.82rem; color: var(--soluk); }
+.ince { display: flex; height: 8px; border-radius: 4px; overflow: hidden; opacity: 0.85; }
+.ince span:nth-child(1) { background: var(--ev); }
+.ince span:nth-child(2) { background: var(--ber); }
+.ince span:nth-child(3) { background: var(--dep); }
+.piyasa-sayi { font-size: 0.82rem; color: var(--soluk); grid-column: 2; position: relative; height: 1.3em; }
+.piyasa-sayi span { position: absolute; top: 0; white-space: nowrap; }
+.fark { font-size: 0.88rem; margin-top: 8px; }
+.fark strong { font-weight: 600; }
+
+.alt { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 0.92rem; color: var(--soluk); align-items: center; }
+.alt b { color: var(--yazi); font-weight: 600; }
+.ac { margin-left: auto; appearance: none; background: none; border: 1px solid var(--cizgi); color: var(--yazi); border-radius: 999px; padding: 4px 14px; font: inherit; font-size: 0.9rem; cursor: pointer; }
+.ac[aria-expanded="true"] { background: var(--yazi); color: var(--zemin); border-color: var(--yazi); }
+
+.detay { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--cizgi); }
+.detay[hidden] { display: none; }
+.detay h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 600; }
+.matris { display: grid; grid-template-columns: 28px repeat(6, minmax(0, 1fr)); gap: 2px; font-size: 0.78rem; }
+.matris div { text-align: center; padding: 6px 0; border-radius: 3px; }
+.matris .bas { color: var(--soluk); padding: 2px 0; }
+.matris .hucre { color: var(--yazi); }
+.matris .hucre.koyu { color: var(--ev-yazi); }
+.not { color: var(--soluk); font-size: 0.82rem; margin: 6px 0 0; }
+.guc { display: grid; gap: 10px; }
+.guc-satir { display: grid; grid-template-columns: minmax(0, 1.2fr) 1fr 1fr; gap: 8px; align-items: center; font-size: 0.85rem; }
+.guc-satir span { overflow-wrap: anywhere; line-height: 1.2; }
+.guc-bar { position: relative; height: 10px; background: var(--zemin); border-radius: 5px; }
+.guc-bar i { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+.guc-bar::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--soluk); opacity: .5; }
+.guc-bas { display: grid; grid-template-columns: minmax(0, 1.2fr) 1fr 1fr; gap: 8px; color: var(--soluk); font-size: 0.8rem; }
+
+.bos { padding: 28px 18px; color: var(--soluk); }
+.bos strong { color: var(--yazi); display: block; margin-bottom: 4px; font-weight: 600; }
+
+/* Başarı kaydı */
+.ozet { font-size: 1.12rem; max-width: 62ch; margin: 0 0 18px; }
+.ozet .sayi { font-weight: 700; font-size: 1.25rem; }
+.panel { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 14px; padding: 18px 16px; }
+.panel + .panel { margin-top: 14px; }
+.iki { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 7px 4px; border-bottom: 1px solid var(--cizgi); }
+th { color: var(--soluk); font-weight: 500; }
+td.s, th.s { text-align: right; font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: 0; }
+.kalib svg { width: 100%; height: auto; display: block; }
+.kalib text { fill: var(--soluk); font-size: 11px; font-family: "Barlow", sans-serif; }
+.son-mac td:first-child { color: var(--soluk); white-space: nowrap; }
+.dogru { color: var(--ev); font-weight: 600; }
+.yanlis { color: var(--dep); font-weight: 600; }
+
+footer { margin-top: 40px; color: var(--soluk); font-size: 0.88rem; max-width: 62ch; }
+footer p { margin: 0 0 8px; }
+
+@media (max-width: 560px) {
+  h1 { font-size: 2rem; }
+  .detay, .iki { grid-template-columns: 1fr; }
+  .cubuk .yuzde { font-size: 0.98rem; }
+  .takim { font-size: 1rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .detay:not([hidden]) { animation: ac 160ms ease-out; }
+  @keyframes ac { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+<div class="sayfa">
+  <header>
+    <div class="ust">
+      <h1>Maç Tahmin</h1>
+      <span class="guncelleme" id="guncelleme">Yükleniyor…</span>
+    </div>
+    <div class="segment" role="group" aria-label="Lig seçimi">
+      <button type="button" data-lig="super_lig" aria-pressed="true">Süper Lig</button>
+      <button type="button" data-lig="premier_lig" aria-pressed="false">Premier Lig</button>
+    </div>
+  </header>
+
+  <main>
+    <section aria-labelledby="maclar-baslik">
+      <h2 id="maclar-baslik">Yaklaşan maçlar</h2>
+      <p class="alt-baslik">Kalın çubuk modelin olasılıkları; altındaki ince çubuk bahis oranlarından hesaplanan, favori–sürpriz yanlılığı düzeltilmiş piyasa olasılıkları.</p>
+      <div class="liste" id="maclar"></div>
+    </section>
+
+    <section aria-labelledby="kayit-baslik">
+      <h2 id="kayit-baslik">Model ne kadar güvenilir?</h2>
+      <div id="canli"></div>
+      <div id="gecmis"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Olasılıklar, geçmiş maçların skorlarından ve şut sayılarından öğrenen istatistiksel bir modelden gelir. Bahis tavsiyesi değildir.</p>
+    <p>Veri: football-data.co.uk. Sayfa her gün otomatik güncellenir.</p>
+  </footer>
+</div>
+
+<script>
+const SONUC = ["Ev sahibi", "Beraberlik", "Deplasman"];
+const durum = { lig: "super_lig", tahmin: null, performans: null, gecmis: null };
+
+const yuzde = (x, ondalik = 0) => x == null || isNaN(x) ? "–" : "%" + (x * 100).toFixed(ondalik).replace(".", ",");
+const ondalik = (x, n = 2) => x == null ? "–" : Number(x).toFixed(n).replace(".", ",");
+const kacis = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+async function yukle(ad) {
+  try {
+    const r = await fetch(`veri/${ad}.json?t=${Date.now()}`);
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
+
+function cubuk(p, etiketli = true) {
+  return p.map((x, i) => {
+    const sinif = ["c1", "cx", "c2"][i];
+    const yazi = etiketli && x >= 0.12 ? `<span class="yuzde">${yuzde(x)}</span>` : "";
+    return `<span class="${sinif}" style="width:${(x * 100).toFixed(2)}%" title="${SONUC[i]}: ${yuzde(x, 1)}">${yazi}</span>`;
+  }).join("");
+}
+
+function farkCumlesi(m) {
+  if (!m.duzeltilmis) return "";
+  const farklar = m.model.map((x, i) => x - m.duzeltilmis[i]);
+  const i = farklar.reduce((a, _, k) => Math.abs(farklar[k]) > Math.abs(farklar[a]) ? k : a, 0);
+  const f = farklar[i];
+  if (Math.abs(f) < 0.07) return `<div class="fark">Model ve piyasa aynı yönde.</div>`;
+  const kim = i === 0 ? m.ev : i === 2 ? m.dep : "beraberlik";
+  const yon = f > 0 ? "daha çok" : "daha az";
+  return `<div class="fark"><strong>Ayrışma:</strong> model ${kacis(kim)} için piyasadan ${Math.round(Math.abs(f) * 100)} puan ${yon} olasılık veriyor.</div>`;
+}
+
+function matris(m) {
+  const S = m.skorlar, n = S.length;
+  const enb = Math.max(...S.flat());
+  let h = `<div class="bas"></div>`;
+  for (let j = 0; j < n; j++) h += `<div class="bas">${j === n - 1 ? "5+" : j}</div>`;
+  for (let i = 0; i < n; i++) {
+    h += `<div class="bas">${i === n - 1 ? "5+" : i}</div>`;
+    for (let j = 0; j < n; j++) {
+      const v = S[i][j], a = enb ? v / enb : 0;
+      h += `<div class="hucre${a > 0.55 ? " koyu" : ""}" style="background:rgba(var(--isi),${(0.06 + 0.9 * a).toFixed(3)})" title="${i}-${j}: ${yuzde(v, 1)}">${v >= 0.005 ? Math.round(v * 100) : ""}</div>`;
+    }
+  }
+  const enIyi = [];
+  S.forEach((r, i) => r.forEach((v, j) => enIyi.push([v, i, j])));
+  enIyi.sort((a, b) => b[0] - a[0]);
+  const ilk = enIyi.slice(0, 3).map(([v, i, j]) => `${i === n - 1 ? "5+" : i}-${j === n - 1 ? "5+" : j} (${yuzde(v)})`).join(", ");
+  return `<div><h3>Skor olasılıkları</h3>
+    <div class="matris" role="img" aria-label="Skor olasılıkları tablosu; en olası skorlar ${ilk}">${h}</div>
+    <p class="not">Satırlar ${kacis(m.ev)}, sütunlar ${kacis(m.dep)} golleri; sayılar yüzde. En olası: ${ilk}.</p></div>`;
+}
+
+function gucBar(deger, renk) {
+  // değerler genelde −0,6 … +0,6; ortadan sağa iyi, sola kötü
+  const x = Math.max(-0.7, Math.min(0.7, deger)) / 0.7 * 50;
+  const sol = x >= 0 ? 50 : 50 + x, gen = Math.abs(x);
+  return `<div class="guc-bar"><i style="left:${sol}%;width:${gen}%;background:${renk}"></i></div>`;
+}
+
+function guc(m) {
+  const satir = (t, renk) => `<div class="guc-satir"><span>${kacis(t.ad)}</span>${gucBar(t.atak, renk)}${gucBar(t.savunma, renk)}</div>`;
+  return `<div><h3>Takım güçleri</h3><div class="guc">
+    <div class="guc-bas"><span></span><span>Hücum</span><span>Savunma</span></div>
+    ${satir(m.guc_ev, "var(--ev)")}${satir(m.guc_dep, "var(--dep)")}</div>
+    <p class="not">Orta çizgi ligin ortalaması. Sağa uzayan çubuk ortalamadan iyi, sola uzayan ortalamadan zayıf demek. Beklenen gol: ${kacis(m.ev)} ${ondalik(m.xg[0])}, ${kacis(m.dep)} ${ondalik(m.xg[1])}.</p></div>`;
+}
+
+function piyasaEtiket(p) {
+  // ilk yüzde çubuğun solunda, son yüzde sağında, beraberlik kendi parçasının ortasında
+  const orta = (p[0] + p[1] / 2) * 100;
+  return `<span style="left:0">${yuzde(p[0])}</span>` +
+    `<span style="left:${orta.toFixed(1)}%;transform:translateX(-50%)">${yuzde(p[1])}</span>` +
+    `<span style="right:0">${yuzde(p[2])}</span>`;
+}
+
+function macCiz(m, k) {
+  const simdi = Date.now();
+  const gecmis = m.baslama && new Date(m.baslama).getTime() < simdi;
+  const piyasa = m.duzeltilmis ? `
+    <div class="piyasa-satir"><span class="etiket">Piyasa</span><div class="ince" role="img" aria-label="Piyasa: ev ${yuzde(m.duzeltilmis[0])}, beraberlik ${yuzde(m.duzeltilmis[1])}, deplasman ${yuzde(m.duzeltilmis[2])}">${m.duzeltilmis.map(x => `<span style="width:${(x * 100).toFixed(2)}%"></span>`).join("")}</div>
+      <div class="piyasa-sayi">${piyasaEtiket(m.duzeltilmis)}</div></div>
+    ${farkCumlesi(m)}` : "";
+  return `<article class="mac${gecmis ? " gecmis" : ""}">
+    <div class="mac-ust"><span>${kacis(m.zaman)}</span><span>${gecmis ? "Başladı / bitti" : ""}</span></div>
+    <div class="takimlar"><span class="takim">${kacis(m.ev)}</span><span class="takim dep">${kacis(m.dep)}</span></div>
+    <div class="cubuk" role="img" aria-label="Model: ${kacis(m.ev)} kazanır ${yuzde(m.model[0])}, beraberlik ${yuzde(m.model[1])}, ${kacis(m.dep)} kazanır ${yuzde(m.model[2])}">${cubuk(m.model)}</div>
+    ${piyasa}
+    <div class="alt"><span>Beklenen gol <b>${ondalik(m.xg[0], 1)} – ${ondalik(m.xg[1], 1)}</b></span><span>2,5 Üst <b>${yuzde(m.ust25)}</b></span><span>Karşılıklı gol <b>${yuzde(m.kg)}</b></span>
+      <button class="ac" type="button" aria-expanded="false" aria-controls="detay-${k}">Ayrıntı</button></div>
+    <div class="detay" id="detay-${k}" hidden>${matris(m)}${guc(m)}</div>
+    ${m.uyari ? `<p class="not">Not: ${kacis(m.uyari)}</p>` : ""}
+  </article>`;
+}
+
+function maclariCiz() {
+  const kutu = document.getElementById("maclar");
+  const lig = durum.tahmin?.ligler?.[durum.lig];
+  if (!durum.tahmin) {
+    kutu.innerHTML = `<div class="bos"><strong>Tahminler yüklenemedi.</strong>Sayfayı yenileyin; sorun sürerse günlük otomasyonun Actions sekmesinde başarıyla çalıştığını kontrol edin.</div>`;
+    return;
+  }
+  const maclar = lig?.maclar || [];
+  const simdi = Date.now();
+  const yaklasan = maclar.filter(m => !m.baslama || new Date(m.baslama).getTime() >= simdi);
+  const gecen = maclar.filter(m => m.baslama && new Date(m.baslama).getTime() < simdi);
+  if (!maclar.length) {
+    kutu.innerHTML = `<div class="bos"><strong>Şu an listede maç yok.</strong>Yeni haftanın fikstürü genellikle hafta ortasında eklenir; sayfa her gün 08:17 ve 17:43 civarında güncellenir.</div>`;
+    return;
+  }
+  kutu.innerHTML = [...yaklasan, ...gecen].map(macCiz).join("");
+  kutu.querySelectorAll(".ac").forEach(b => b.addEventListener("click", () => {
+    const d = document.getElementById(b.getAttribute("aria-controls"));
+    const acik = b.getAttribute("aria-expanded") === "true";
+    b.setAttribute("aria-expanded", String(!acik)); b.textContent = acik ? "Ayrıntı" : "Kapat";
+    d.hidden = acik;
+  }));
+}
+
+function kalibrasyonGrafik(noktalar) {
+  if (!noktalar?.length) return "";
+  const G = 300, Y = 230, sol = 34, alt = 28, ust = 8, sag = 8;
+  const w = G - sol - sag, h = Y - alt - ust, enb = 0.9;
+  const X = v => sol + (v / enb) * w, Yk = v => ust + h - (v / enb) * h;
+  let s = "";
+  for (const t of [0, 0.2, 0.4, 0.6, 0.8]) {
+    s += `<line x1="${X(t)}" x2="${X(t)}" y1="${ust}" y2="${ust + h}" stroke="var(--cizgi)"/>`;
+    s += `<line x1="${sol}" x2="${sol + w}" y1="${Yk(t)}" y2="${Yk(t)}" stroke="var(--cizgi)"/>`;
+    s += `<text x="${X(t)}" y="${Y - 10}" text-anchor="middle">%${t * 100}</text>`;
+    s += `<text x="${sol - 6}" y="${Yk(t) + 4}" text-anchor="end">%${t * 100}</text>`;
+  }
+  s += `<line x1="${X(0)}" y1="${Yk(0)}" x2="${X(enb)}" y2="${Yk(enb)}" stroke="var(--soluk)" stroke-dasharray="4 4"/>`;
+  const yol = noktalar.map((p, i) => `${i ? "L" : "M"}${X(p.olasilik).toFixed(1)},${Yk(p.gercek).toFixed(1)}`).join("");
+  s += `<path d="${yol}" fill="none" stroke="var(--ev)" stroke-width="2"/>`;
+  const enN = Math.max(...noktalar.map(p => p.n));
+  for (const p of noktalar) {
+    const r = 3 + 5 * Math.sqrt(p.n / enN);
+    s += `<circle cx="${X(p.olasilik)}" cy="${Yk(p.gercek)}" r="${r.toFixed(1)}" fill="var(--ev)"><title>Model ${yuzde(p.olasilik)} dediğinde gerçekleşen: ${yuzde(p.gercek)} (${p.n} tahmin)</title></circle>`;
+  }
+  const aciklama = noktalar.map(p => `model ${yuzde(p.olasilik)} dediğinde ${yuzde(p.gercek)}`).join("; ");
+  return `<svg viewBox="0 0 ${G} ${Y}" role="img" aria-label="Kalibrasyon: ${aciklama}">${s}</svg>`;
+}
+
+function canliCiz() {
+  const kutu = document.getElementById("canli");
+  const p = durum.performans?.ligler?.[durum.lig];
+  if (!p || !p.n) {
+    kutu.innerHTML = `<div class="panel"><strong>Canlı kayıt henüz başlamadı.</strong>
+      <p class="not" style="font-size:.95rem">Her maç için yalnızca maç gününden önce yapılmış tahmin sayılır. Sonuçlar oynandıkça bu bölüm kendiliğinden dolacak.</p></div>`;
+    return;
+  }
+  const piy = p.piyasa ? `<p class="not" style="font-size:.95rem">Oranları da olan ${p.piyasa.n} maçta Brier: model ${ondalik(p.piyasa.brier_model, 3)}, piyasa ${ondalik(p.piyasa.brier_piyasa, 3)}, düzeltilmiş piyasa ${ondalik(p.piyasa.brier_duzeltilmis, 3)}. Düşük olan daha iyi.</p>` : "";
+  const satirlar = (p.son_maclar || []).slice(0, 12).map(m => {
+    const tahmin = m.model.indexOf(Math.max(...m.model));
+    const dogru = tahmin === m.sonuc;
+    return `<tr class="son-mac"><td>${kacis(m.tarih.slice(5).split("-").reverse().join("."))}</td><td>${kacis(m.ev)} – ${kacis(m.dep)}</td><td class="s">${kacis(m.skor)}</td><td class="s ${dogru ? "dogru" : "yanlis"}">${yuzde(m.model[m.sonuc])}</td></tr>`;
+  }).join("");
+  kutu.innerHTML = `<div class="panel">
+    <p class="ozet">Canlı kayıtta <span class="sayi">${p.n}</span> maç var. Model en olası dediği sonucu <span class="sayi">${yuzde(p.isabet)}</span> oranında bildi; Brier skoru <span class="sayi">${ondalik(p.brier, 3)}</span>.</p>
+    ${piy}
+    <table><thead><tr><th>Tarih</th><th>Maç</th><th class="s">Skor</th><th class="s">Sonuca verilen olasılık</th></tr></thead><tbody>${satirlar}</tbody></table>
+    <p class="not">Yeşil: modelin en olası dediği sonuç gerçekleşti. Kırmızı: gerçekleşmedi.</p></div>`;
+}
+
+function gecmisCiz() {
+  const kutu = document.getElementById("gecmis");
+  const g = durum.gecmis?.ligler?.[durum.lig];
+  if (!g) { kutu.innerHTML = ""; return; }
+  const emin = g.emin_tahminler.map(e => `<tr><td>%${e.esik * 100} ve üstü</td><td class="s">${e.n}</td><td class="s">${yuzde(e.isabet)}</td></tr>`).join("");
+  kutu.innerHTML = `<div class="panel">
+    <p class="ozet">Geçmiş testte (${kacis(g.donem)}, ${g.n.toLocaleString("tr-TR")} maç) model hiçbir maçı önceden görmeden tahmin etti. En olası dediği sonuç <span class="sayi">${yuzde(g.isabet_model)}</span> oranında gerçekleşti; bahis oranlarının favorisi <span class="sayi">${yuzde(g.isabet_oran)}</span>, her maça “ev sahibi kazanır” demek ise ${yuzde(g.isabet_ev)} tutturdu.</p>
+    <p class="not" style="font-size:.95rem;margin-bottom:16px">Takım bilgisi kullanmayan tahmin ile bahis oranları arasındaki farkın <strong>${yuzde(g.acik_kapanan)}</strong>’ını kapatıyor (Brier: lig ortalaması ${ondalik(g.brier_lig_ortalamasi, 3)}, model ${ondalik(g.brier_model, 3)}, oranlar ${ondalik(g.brier_oran, 3)}).</p>
+    <div class="iki">
+      <div class="kalib"><h3 style="margin:0 0 6px;font-size:1.05rem">Model “%X” dediğinde ne oluyor?</h3>${kalibrasyonGrafik(g.kalibrasyon)}
+        <p class="not">Noktalar kesikli çizgiye ne kadar yakınsa olasılıklar o kadar dürüst. Büyük nokta daha çok tahmin demek.</p></div>
+      <div><h3 style="margin:0 0 6px;font-size:1.05rem">Model emin olduğunda</h3>
+        <table><thead><tr><th>Verdiği olasılık</th><th class="s">Maç</th><th class="s">İsabet</th></tr></thead><tbody>${emin}</tbody></table></div>
+    </div></div>`;
+}
+
+function hepsiniCiz() {
+  maclariCiz(); canliCiz(); gecmisCiz();
+  document.querySelectorAll(".segment button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lig === durum.lig)));
+}
+
+document.querySelectorAll(".segment button").forEach(b => b.addEventListener("click", () => {
+  durum.lig = b.dataset.lig;
+  try { localStorage.setItem("lig", durum.lig); } catch (e) {}
+  hepsiniCiz();
+}));
+
+(async () => {
+  try { const k = localStorage.getItem("lig"); if (k === "super_lig" || k === "premier_lig") durum.lig = k; } catch (e) {}
+  [durum.tahmin, durum.performans, durum.gecmis] = await Promise.all([yukle("tahminler"), yukle("performans"), yukle("gecmis_test")]);
+  const g = durum.tahmin?.guncelleme;
+  if (g) {
+    const t = new Date(g.replace(" ", "T") + ":00Z");
+    document.getElementById("guncelleme").textContent = "Son güncelleme: " + t.toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
+  } else {
+    document.getElementById("guncelleme").textContent = "";
+  }
+  hepsiniCiz();
+})();
+</script>
+</body>
+</html>

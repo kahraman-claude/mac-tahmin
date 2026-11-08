@@ -20,7 +20,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
 
-from ortak import LIGLER, RAPOR, TAHMIN, VERI, lig_dosyalari
+import json
+
+from ortak import KOK, LIGLER, RAPOR, TAHMIN, VERI, lig_dosyalari, takim_adi
 import poisson_model as pm
 
 warnings.filterwarnings("ignore")
@@ -36,6 +38,16 @@ def tr_saati(tarih, saat):
         return yerel.tz_convert("Europe/Istanbul").strftime("%d.%m %H:%M")
     except Exception:
         return f"{tarih:%d.%m}"
+
+
+def baslama_utc(tarih, saat):
+    """Maçın başlama anı (UTC, ISO biçiminde); saat yoksa None. Sayfa, başlamış maçları buna göre ayırır."""
+    if pd.isna(saat) or ":" not in str(saat):
+        return None
+    try:
+        return pd.Timestamp(f"{tarih.date()} {saat}").tz_localize("Europe/London").tz_convert("UTC").isoformat()
+    except Exception:
+        return None
 
 
 def modeli_egit(df, lig, gun):
@@ -95,6 +107,16 @@ def hedefsiz_durumu(df, gun, takimlar_maclar, son_hafta=10, esik=1.5):
     return durum
 
 
+SITE = {}          # web sayfası için toplanan veri (docs/veri/tahminler.json)
+
+
+def skor_tablosu(M, n=6):
+    """Skor matrisini 0..5 gol olarak küçültür; son satır/sütun '5 ve üstü' golü toplar."""
+    K = M[:n, :n].copy()
+    K[n - 1, :] = M[n - 1:, :n].sum(0); K[:, n - 1] = M[:n, n - 1:].sum(1); K[n - 1, n - 1] = M[n - 1:, n - 1:].sum()
+    return [[round(float(x), 4) for x in satir] for satir in K]
+
+
 def lig_tahmini(lig, fikstur, gun):
     a = LIGLER[lig]
     df = pm.veri_oku(lig_dosyalari(lig))
@@ -111,6 +133,12 @@ def lig_tahmini(lig, fikstur, gun):
     hedefsiz = hedefsiz_durumu(df, gun, set(f.HomeTeam) | set(f.AwayTeam))
     bilinen = set(model["a"])
     satirlar = []
+    sezon_bas = pd.Timestamp(year=gun.year if gun.month >= 8 else gun.year - 1, month=7, day=1)
+    bu_sezon = sorted(set(df[df.Date >= sezon_bas].HomeTeam) | set(f.HomeTeam) | set(f.AwayTeam))
+    guc = lambda t: {"ad": takim_adi(t), "atak": round(float(model["a"].get(t, 0)), 3),
+                     "savunma": round(float(model["d"].get(t, 0)), 3)}
+    site = {"ad": a["ad"], "maclar": [],
+            "takimlar": sorted((guc(t) for t in bu_sezon), key=lambda x: -(x["atak"] + x["savunma"]))}
     for _, m in f.iterrows():
         uyari = ", ".join(t for t in (m.HomeTeam, m.AwayTeam) if t not in bilinen)
         ce, cd = pm.duzeltme_carpanlari(lig, m.HomeTeam, m.AwayTeam,
@@ -137,6 +165,16 @@ def lig_tahmini(lig, fikstur, gun):
                           "duzeltilmis_1": round(pdz[0], 4), "duzeltilmis_X": round(pdz[1], 4),
                           "duzeltilmis_2": round(pdz[2], 4)})
         satirlar.append(satir)
+        site["maclar"].append({
+            "tarih": satir["tarih"], "zaman": satir["tr_zaman"], "baslama": baslama_utc(m.Date, m.get("Time", "")), "ev": takim_adi(m.HomeTeam),
+            "dep": takim_adi(m.AwayTeam), "xg": [satir["beklenen_gol_ev"], satir["beklenen_gol_dep"]],
+            "model": [satir["model_1"], satir["model_X"], satir["model_2"]],
+            "piyasa": [satir[k] for k in ("piyasa_1", "piyasa_X", "piyasa_2")] if "piyasa_1" in satir else None,
+            "duzeltilmis": [satir[k] for k in ("duzeltilmis_1", "duzeltilmis_X", "duzeltilmis_2")] if "piyasa_1" in satir else None,
+            "ust25": satir["model_2.5ust"], "kg": satir["model_kg_var"], "skorlar": skor_tablosu(M),
+            "guc_ev": guc(m.HomeTeam), "guc_dep": guc(m.AwayTeam), "uyari": satir["uyari"]})
+    site["maclar"].sort(key=lambda x: (x["tarih"], x["zaman"]))
+    SITE[lig] = site
     print(f"{a['ad']}: {len(satirlar)} maç tahmin edildi (piyasa üssü b = {b:.2f})")
     return pd.DataFrame(satirlar)
 
@@ -164,6 +202,14 @@ def rapor_yaz(t, calisma):
     (RAPOR / "bu_hafta.md").write_text("\n".join(satir) + "\n", encoding="utf-8")
 
 
+def site_yaz(calisma):
+    """Web sayfasının okuduğu veri dosyası. Maç yoksa ligler boş liste olarak yazılır."""
+    hedef = KOK / "docs" / "veri" / "tahminler.json"
+    hedef.parent.mkdir(parents=True, exist_ok=True)
+    ligler = {lig: SITE.get(lig, {"ad": LIGLER[lig]["ad"], "maclar": [], "takimlar": []}) for lig in LIGLER}
+    hedef.write_text(json.dumps({"guncelleme": calisma, "ligler": ligler}, ensure_ascii=False), encoding="utf-8")
+
+
 def main():
     gun = pd.Timestamp.today().normalize()
     calisma = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
@@ -174,7 +220,7 @@ def main():
     tum = [lig_tahmini(lig, fikstur, gun) for lig in LIGLER]
     t = pd.concat([x for x in tum if not x.empty], ignore_index=True) if any(not x.empty for x in tum) else pd.DataFrame()
     if t.empty:
-        print("Tahmin edilecek maç yok."); return
+        print("Tahmin edilecek maç yok."); site_yaz(calisma); return
     t.insert(0, "calisma_zamani", calisma)
     TAHMIN.mkdir(exist_ok=True); RAPOR.mkdir(exist_ok=True)
     t.to_csv(TAHMIN / "guncel.csv", index=False)
@@ -185,6 +231,7 @@ def main():
     t = t.drop_duplicates(["_gun", "lig", "tarih", "ev", "deplasman"], keep="last").drop(columns="_gun")
     t.to_csv(arsiv, index=False)
     rapor_yaz(pd.read_csv(TAHMIN / "guncel.csv"), calisma)
+    site_yaz(calisma)
     print("Kaydedildi: tahminler/guncel.csv, tahminler/arsiv.csv, raporlar/bu_hafta.md")
 
 

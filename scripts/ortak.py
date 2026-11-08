@@ -36,3 +36,25 @@ def sezon_dosyasi(lig, yil):
 def lig_dosyalari(lig):
     a = LIGLER[lig]
     return sorted(a["klasor"].glob(f"{a['kod']}_*.csv"))
+
+
+# Web sayfasında gösterilecek takım adları (veri dosyalarındaki kısaltmalar → tam ad)
+TAKIM_ADI = {
+    # Süper Lig
+    "Besiktas": "Beşiktaş", "Buyuksehyr": "Başakşehir", "Corum": "Çorum FK", "Eyupspor": "Eyüpspor",
+    "Fenerbahce": "Fenerbahçe", "Gaziantep": "Gaziantep FK", "Genclerbirligi": "Gençlerbirliği",
+    "Goztep": "Göztepe", "Kasimpasa": "Kasımpaşa", "Ad. Demirspor": "Adana Demirspor",
+    "Ankaragucu": "Ankaragücü", "Hatayspor": "Hatayspor", "Istanbulspor": "İstanbulspor",
+    "Karagumruk": "Karagümrük", "Pendikspor": "Pendikspor", "Umraniyespor": "Ümraniyespor",
+    "Bodrumspor": "Bodrumspor", "Sivasspor": "Sivasspor", "Kayserispor": "Kayserispor",
+    "Antalyaspor": "Antalyaspor", "Hatayspor": "Hatayspor",
+    # Premier Lig
+    "Man City": "Manchester City", "Man United": "Manchester United", "Nott'm Forest": "Nottingham Forest",
+    "Hull": "Hull City", "Ipswich": "Ipswich Town", "Leeds": "Leeds United", "Newcastle": "Newcastle United",
+    "Coventry": "Coventry City", "Tottenham": "Tottenham Hotspur", "Wolves": "Wolverhampton",
+    "West Ham": "West Ham United", "Sheffield United": "Sheffield United", "Leicester": "Leicester City",
+}
+
+
+def takim_adi(t):
+    return TAKIM_ADI.get(t, t)
