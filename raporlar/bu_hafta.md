@@ -1,6 +1,6 @@
 # Tahminler
 
-Son güncelleme: 2026-11-08 17:38 (UTC)
+Son güncelleme: 2026-11-08 17:42 (UTC)
 
 Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı. İstatistiksel tahmindir, bahis tavsiyesi değildir.
 
@@ -28,8 +28,8 @@ Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı
 
 | Tarih (TR saati) | Maç | 1 | X | 2 | 2,5 Üst | KG Var | En olası skor |
 |---|---|---|---|---|---|---|---|
-| 08.11 16:00 | Elche – Betis | %36 (%28) | %26 (%24) | %38 (%47) | %54 | %58 | 1-1 %12 |
-| 08.11 18:15 | Sociedad – Vallecano | %51 (%60) | %25 (%21) | %24 (%19) | %51 | %53 | 1-1 %12 |
-| 08.11 20:30 | Celta – Levante | %53 (%53) | %24 (%25) | %23 (%22) | %55 | %56 | 1-1 %11 |
-| 08.11 20:30 | Villarreal – Getafe | %60 (%70) | %25 (%19) | %15 (%11) | %42 | %41 | 1-0 %15 |
-| 08.11 23:00 | Ath Madrid – Barcelona | %34 (%25) | %24 (%21) | %42 (%55) | %64 | %65 | 1-1 %10 |
+| 08.11 16:00 | Elche – Betis | %36 (%28) | %26 (%24) | %38 (%47) | %51 | %55 | 1-1 %12 |
+| 08.11 18:15 | Sociedad – Vallecano | %50 (%60) | %25 (%21) | %25 (%19) | %50 | %53 | 1-1 %12 |
+| 08.11 20:30 | Celta – Levante | %53 (%53) | %24 (%25) | %23 (%22) | %52 | %53 | 1-1 %12 |
+| 08.11 20:30 | Villarreal – Getafe | %61 (%70) | %23 (%19) | %16 (%11) | %48 | %46 | 1-0 %13 |
+| 08.11 23:00 | Ath Madrid – Barcelona | %31 (%25) | %25 (%21) | %44 (%55) | %57 | %60 | 1-1 %11 |
