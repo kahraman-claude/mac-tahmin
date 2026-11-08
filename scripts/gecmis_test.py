@@ -24,7 +24,7 @@ from ortak import KOK, LIGLER, lig_dosyalari
 import poisson_model as pm
 
 warnings.filterwarnings("ignore")
-BASLANGIC = {"super_lig": "2018-08-01", "premier_lig": "2015-08-01"}
+BASLANGIC = {"super_lig": "2018-08-01", "premier_lig": "2015-08-01", "la_liga": "2015-08-01"}
 
 
 def sezon(tarih):

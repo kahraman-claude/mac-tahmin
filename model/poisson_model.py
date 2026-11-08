@@ -427,6 +427,7 @@ def birlestirme_agirliklari(p_model, p_oran, sonuc):
 LIG_AYARLARI = {
     "super_lig":    {"dixon_coles": True, "alfa": 0.3, "yari_omur": 120, "r_guc": None, "r_tarz": None},
     "premier_lig":  {"dixon_coles": True, "alfa": 1.0, "yari_omur": 365, "r_guc": 1.0,  "r_tarz": 15.0},
+    "la_liga":      {"dixon_coles": True, "alfa": 1.0, "yari_omur": 365, "r_guc": None, "r_tarz": None},   # geçici; geçmiş testle seçilecek
 }
 
 
@@ -452,6 +453,7 @@ BUYUK_DERBI_TR = {"Galatasaray", "Fenerbahce", "Besiktas", "Trabzonspor"}
 DUZELTMELER = {
     "super_lig":   {"buyuk_derbi_gol": 0.885, "hedefsiz_kendi_gol": 1.0, "hedefsiz_rakip_gol": 1.0},
     "premier_lig": {"buyuk_derbi_gol": 1.0, "hedefsiz_kendi_gol": 0.966, "hedefsiz_rakip_gol": 1.093},
+    "la_liga":     {"buyuk_derbi_gol": 1.0, "hedefsiz_kendi_gol": 1.0, "hedefsiz_rakip_gol": 1.0},
 }
 
 

@@ -14,6 +14,7 @@ RAPOR = KOK / "raporlar"
 LIGLER = {
     "super_lig":   {"kod": "T1", "klasor": VERI / "super_lig",   "api_id": 203, "ilk_sezon": 2013, "ad": "Süper Lig"},
     "premier_lig": {"kod": "E0", "klasor": VERI / "premier_lig", "api_id": 39,  "ilk_sezon": 2019, "ad": "Premier Lig"},
+    "la_liga":     {"kod": "SP1", "klasor": VERI / "la_liga",    "api_id": 140, "ilk_sezon": 2010, "ad": "La Liga"},
 }
 
 
