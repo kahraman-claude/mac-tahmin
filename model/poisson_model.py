@@ -454,6 +454,8 @@ BUYUK_DERBI_TR = {"Galatasaray", "Fenerbahce", "Besiktas", "Trabzonspor"}
 DUZELTMELER = {
     "super_lig":   {"buyuk_derbi_gol": 0.885, "hedefsiz_kendi_gol": 1.0, "hedefsiz_rakip_gol": 1.0},
     "premier_lig": {"buyuk_derbi_gol": 1.0, "hedefsiz_kendi_gol": 0.966, "hedefsiz_rakip_gol": 1.093},
+    # La Liga: derbi (büyük üçlü ve yerel derbiler) ve motivasyon düzeltmeleri test edildi, ileriye dönük testte
+    # iyileşme sağlamadı (Kasım 2026) → kapalı.
     "la_liga":     {"buyuk_derbi_gol": 1.0, "hedefsiz_kendi_gol": 1.0, "hedefsiz_rakip_gol": 1.0},
 }
 
