@@ -54,6 +54,12 @@ TAKIM_ADI = {
     "Hull": "Hull City", "Ipswich": "Ipswich Town", "Leeds": "Leeds United", "Newcastle": "Newcastle United",
     "Coventry": "Coventry City", "Tottenham": "Tottenham Hotspur", "Wolves": "Wolverhampton",
     "West Ham": "West Ham United", "Sheffield United": "Sheffield United", "Leicester": "Leicester City",
+    # La Liga
+    "Alaves": "Alavés", "Ath Bilbao": "Athletic Bilbao", "Ath Madrid": "Atlético Madrid", "Betis": "Real Betis",
+    "Celta": "Celta Vigo", "Espanol": "Espanyol", "La Coruna": "Deportivo La Coruña", "Malaga": "Málaga",
+    "Santander": "Racing Santander", "Sociedad": "Real Sociedad", "Vallecano": "Rayo Vallecano",
+    "Almeria": "Almería", "Cadiz": "Cádiz", "Cordoba": "Córdoba", "Leganes": "Leganés", "Sp Gijon": "Sporting Gijón",
+    "Oviedo": "Real Oviedo", "Hercules": "Hércules",
 }
 
 

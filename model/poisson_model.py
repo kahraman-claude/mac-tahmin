@@ -427,7 +427,8 @@ def birlestirme_agirliklari(p_model, p_oran, sonuc):
 LIG_AYARLARI = {
     "super_lig":    {"dixon_coles": True, "alfa": 0.3, "yari_omur": 120, "r_guc": None, "r_tarz": None},
     "premier_lig":  {"dixon_coles": True, "alfa": 1.0, "yari_omur": 365, "r_guc": 1.0,  "r_tarz": 15.0},
-    "la_liga":      {"dixon_coles": True, "alfa": 1.0, "yari_omur": 365, "r_guc": None, "r_tarz": None},   # geçici; geçmiş testle seçilecek
+    "la_liga":      {"dixon_coles": True, "alfa": 1.0, "yari_omur": 365, "r_guc": 1.0,  "r_tarz": 15.0},
+    # La Liga: 2015–21'de 18 ayar denendi, en iyisi seçildi; 2021–26 testinde Brier 0,583 (oranlar 0,573, lig ort. 0,643)
 }
 
 

@@ -59,7 +59,7 @@ h1 { margin: 0; font-size: 2.4rem; line-height: 1; font-weight: 700; letter-spac
 .segment { display: inline-flex; background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 999px; padding: 3px; width: max-content; }
 .segment button {
   appearance: none; border: 0; background: transparent; color: var(--soluk); font-size: 1.05rem; font-weight: 600;
-  padding: 6px 16px; border-radius: 999px; cursor: pointer;
+  padding: 6px 14px; border-radius: 999px; cursor: pointer;
 }
 .segment button[aria-pressed="true"] { background: var(--yazi); color: var(--zemin); }
 
@@ -182,6 +182,7 @@ footer p { margin: 0 0 8px; }
     <div class="segment" role="group" aria-label="Lig seçimi">
       <button type="button" data-lig="super_lig" aria-pressed="true">Süper Lig</button>
       <button type="button" data-lig="premier_lig" aria-pressed="false">Premier Lig</button>
+      <button type="button" data-lig="la_liga" aria-pressed="false">La Liga</button>
     </div>
   </header>
 
@@ -439,7 +440,7 @@ document.querySelectorAll(".segment button").forEach(b => b.addEventListener("cl
 }));
 
 (async () => {
-  try { const k = localStorage.getItem("lig"); if (k === "super_lig" || k === "premier_lig") durum.lig = k; } catch (e) {}
+  try { const k = localStorage.getItem("lig"); if (["super_lig", "premier_lig", "la_liga"].includes(k)) durum.lig = k; } catch (e) {}
   [durum.tahmin, durum.performans, durum.gecmis] = await Promise.all([yukle("tahminler"), yukle("performans"), yukle("gecmis_test")]);
   const g = durum.tahmin?.guncelleme;
   if (g) {
