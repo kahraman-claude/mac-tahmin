@@ -14,6 +14,7 @@ Devre yalnızca **iki entegre** ile kurulur: **AD620** (yükselteç) + **LM324**
 | `simulasyon.py` | Yapay EMG + parazitlerle devrenin bilgisayarda denenmesi, SNR |
 | `olcum_analiz.py` | Osiloskoptan alınan gerçek kaydın analizi (grafikler + SNR) |
 | `snr.py` | SNR ve zarf hesaplama fonksiyonları |
+| `breadboard_cizim.py` → `breadboard.html` | Breadboard yerleşim çizimi; bağlantıları bu şemaya karşı otomatik doğrular |
 | `sekiller/` | Üretilen grafikler |
 
 ```bash

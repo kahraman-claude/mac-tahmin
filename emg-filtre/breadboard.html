@@ -1,0 +1,1181 @@
+<title>EMG Breadboard Yerleşimi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Düzen: üstte başlık ve kat seçici, ortada yatay kaydırılabilir breadboard, altta seçili parça/bağlantı paneli */
+:root {
+  --bg: #eef1f4; --yuzey: #ffffff; --fg: #1b2430; --soluk: #5d6b7a; --cizgi: #d3dae2;
+  --kart: #f7f8fa; --kart-kenar: #cfd6de; --delik: #b9c2cc; --kanal: #dfe4ea;
+  --arti: #d33a2c; --eksi: #2c5fd3; --gnd: #1b2430;
+  --vurgu: #0f8b8d; --vurgu-zemin: rgba(15,139,141,.14);
+  --ic: #23272e; --ic-yazi: #eef1f4;
+  --direnc: #e3c79a; --film: #d8a630; --seramik: #e08a3c; --elko: #2d4f8f; --trim: #2f6fd6;
+  --k-guc: #7b8794; --k-ina: #8a5cd6; --k-centik: #d6455c; --k-ag: #2b9a5f; --k-kazanc: #d98a1c; --k-lm: #4b8fd6;
+  --tel: #2b9a5f;
+  --f-baslik: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-metin: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-kod: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161b; --yuzey: #1a2028; --fg: #e6ebf0; --soluk: #95a3b2; --cizgi: #2c3542;
+  --kart: #232a33; --kart-kenar: #36414e; --delik: #10141a; --kanal: #1b2129;
+  --arti: #ff6b5c; --eksi: #6e9bff; --gnd: #c9d2dc;
+  --vurgu: #3cc7c3; --vurgu-zemin: rgba(60,199,195,.16);
+  --ic: #0b0d10; --ic-yazi: #dfe5ea;
+  --direnc: #cdb187; --film: #c99a2b; --seramik: #d47d33; --elko: #4c74c2; --trim: #4d86e8;
+  --tel: #45c07e; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12161b; --yuzey: #1a2028; --fg: #e6ebf0; --soluk: #95a3b2; --cizgi: #2c3542;
+  --kart: #232a33; --kart-kenar: #36414e; --delik: #10141a; --kanal: #1b2129;
+  --arti: #ff6b5c; --eksi: #6e9bff; --gnd: #c9d2dc;
+  --vurgu: #3cc7c3; --vurgu-zemin: rgba(60,199,195,.16);
+  --ic: #0b0d10; --ic-yazi: #dfe5ea;
+  --direnc: #cdb187; --film: #c99a2b; --seramik: #d47d33; --elko: #4c74c2; --trim: #4d86e8;
+  --tel: #45c07e; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-metin); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px; }
+.sar { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font-family: var(--f-baslik); font-size: clamp(22px, 3vw, 30px); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.ust p { margin: 6px 0 0; color: var(--soluk); max-width: 70ch; }
+.uyari { display: flex; flex-wrap: wrap; gap: 8px; }
+.cip { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--yuzey); border: 1px solid var(--cizgi); }
+.cip b { font-family: var(--f-kod); font-weight: 600; }
+.katlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.kat-btn { display: flex; gap: 10px; align-items: flex-start; text-align: left; padding: 9px 11px; border-radius: 8px;
+  background: var(--yuzey); border: 1px solid var(--cizgi); color: var(--fg); font: inherit; cursor: pointer; }
+.kat-btn small { display: block; color: var(--soluk); font-size: 12px; line-height: 1.35; }
+.kat-btn b { font-weight: 600; font-size: 14px; }
+.kat-btn[aria-pressed="true"] { border-color: var(--vurgu); background: var(--vurgu-zemin); }
+.kat-btn:focus-visible, .parca:focus-visible { outline: 2px solid var(--vurgu); outline-offset: 2px; }
+.nokta { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex: none; }
+.nokta.kat-guc { background: var(--k-guc); } .nokta.kat-ina { background: var(--k-ina); }
+.nokta.kat-centik { background: var(--k-centik); } .nokta.kat-ag { background: var(--k-ag); }
+.nokta.kat-kazanc { background: var(--k-kazanc); } .nokta.kat-lm { background: var(--k-lm); }
+.tahta { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 12px; padding: 10px; overflow-x: auto; }
+#bb { display: block; width: 100%; min-width: 980px; height: auto; font-family: var(--f-kod); }
+.kart { fill: var(--kart); stroke: var(--kart-kenar); }
+.kanal { fill: var(--kanal); }
+.ray-art { stroke: var(--arti); stroke-width: 1.5; } .ray-eks { stroke: var(--eksi); stroke-width: 1.5; }
+.ray-yazi { font-size: 9px; fill: var(--soluk); }
+.koord { font-size: 8.5px; fill: var(--soluk); }
+.delik { fill: var(--delik); }
+.delik.yan { fill: var(--vurgu); }
+.ic-govde { fill: var(--ic); } .ic-centik { fill: var(--kart); }
+.ic-yazi { font-size: 11px; font-weight: 600; fill: var(--ic-yazi); letter-spacing: .04em; }
+.ic-bacak { fill: #9aa4ae; } .ic-no { font-size: 8px; fill: var(--fg); font-weight: 600; }
+.bacak { stroke: #8d969f; stroke-width: 1.6; fill: none; }
+.uc { fill: #8d969f; }
+.direnc-govde { fill: var(--direnc); stroke: rgba(0,0,0,.25); }
+.film-govde { fill: var(--film); stroke: rgba(0,0,0,.25); }
+.seramik-govde { fill: var(--seramik); } .elko-govde { fill: var(--elko); }
+.trim-govde { fill: var(--trim); } .trim-vida { fill: #e9c46a; }
+.govde-yazi { font-size: 7.5px; fill: #1b2430; font-weight: 600; }
+.kablo { fill: none; stroke-width: 3; stroke-linecap: round; opacity: .92; }
+.tel-sinyal { stroke: var(--tel); } .tel-arti { stroke: var(--arti); } .tel-eksi { stroke: var(--eksi); }
+.tel-gnd, .tel-guc { stroke: var(--gnd); }
+.pil-art { stroke: var(--arti); } .pil-eks { stroke: var(--gnd); }
+.pil-govde { fill: var(--soluk); }
+.elektrot-kablo { stroke: var(--k-ina); stroke-dasharray: 5 3; }
+.elektrot-etiket { fill: var(--k-ina); } .elektrot-yazi { font-size: 10px; fill: #fff; font-weight: 600; }
+.prob-cubuk { stroke: var(--soluk); stroke-width: 1.5; }
+.prob-bayrak { fill: var(--fg); } .prob-yazi { font-size: 9px; fill: var(--bg); font-weight: 600; }
+.parca { cursor: pointer; transition: opacity .15s; }
+#bb.odak .parca { opacity: .18; }
+#bb.odak .parca.secik { opacity: 1; }
+#bb.odak .parca.secik .kablo { stroke-width: 4; }
+.alt { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .alt { grid-template-columns: 1fr; } }
+.panel { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.panel h2 { font-family: var(--f-baslik); font-size: 17px; margin: 0 0 8px; }
+.panel p { margin: 0 0 8px; }
+.etiket { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--soluk); font-weight: 600; }
+.delik-listesi { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; padding: 0; list-style: none; }
+.delik-listesi li { font-family: var(--f-kod); font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--vurgu-zemin); }
+ol.adim { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+ol.adim li::marker { font-family: var(--f-kod); color: var(--soluk); }
+code { font-family: var(--f-kod); font-size: .92em; }
+@media (prefers-reduced-motion: reduce) { .parca { transition: none; } }
+</style>
+
+<div class="sar">
+  <header class="ust">
+    <h1>EMG filtre devresi — breadboard yerleşimi</h1>
+    <p>AD620 + LM324 devresinin 830 delikli breadboard üzerindeki yerleşimi. Bir parçaya veya deliğe dokunun:
+    o noktaya elektriksel olarak bağlı her şey vurgulanır. Bu yerleşim bir betikle README'deki devre şemasına karşı
+    tek tek doğrulandı.</p>
+  </header>
+  <div class="uyari">
+    <span class="cip">İki entegrenin de çentiği <b>solda</b>, 1. bacak sol altta</span>
+    <span class="cip">Üst hatlar: <b>+9 V</b> ve <b>GND</b> · Alt hatlar: <b>GND</b> ve <b>−9 V</b></span>
+    <span class="cip">Güç hatları ortadan kesikse kısa bir tel ile birleştirin</span>
+  </div>
+  <div class="katlar" role="group" aria-label="Katları göster"><button type="button" class="kat-btn" id="k-guc" data-kat="guc" aria-pressed="false"><span class="nokta kat-guc"></span><span><b>Güç</b><small>Piller, güç hatları, dekuplaj kondansatörleri</small></span></button><button type="button" class="kat-btn" id="k-ina" data-kat="ina" aria-pressed="false"><span class="nokta kat-ina"></span><span><b>[1] AD620</b><small>Elektrotlar, koruma dirençleri, RG</small></span></button><button type="button" class="kat-btn" id="k-centik" data-kat="centik" aria-pressed="false"><span class="nokta kat-centik"></span><span><b>[2] Çentik filtre</b><small>Twin-T, trimpot, LM324 A ve B</small></span></button><button type="button" class="kat-btn" id="k-ag" data-kat="ag" aria-pressed="false"><span class="nokta kat-ag"></span><span><b>[3] Alçak geçiren</b><small>Sallen-Key, LM324 C</small></span></button><button type="button" class="kat-btn" id="k-kazanc" data-kat="kazanc" aria-pressed="false"><span class="nokta kat-kazanc"></span><span><b>[4] Yüksek geçiren + kazanç</b><small>LM324 D</small></span></button><button type="button" class="kat-btn" id="k-lm" data-kat="lm" aria-pressed="false"><span class="nokta kat-lm"></span><span><b>LM324 çıkış dirençleri</b><small>Her çıkıştan −9 V'a 10k</small></span></button></div>
+  <div class="tahta"><svg id="bb" viewBox="0 0 1084 402" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Breadboard yerleşimi">
+<rect x="8" y="10" width="1068" height="316" rx="10" class="kart"/>
+<rect x="20" y="157.0" width="1044" height="10" rx="3" class="kanal"/>
+<line x1="30" x2="1054" y1="25" y2="25" class="ray-art"/>
+<text x="1058" y="38" class="ray-yazi">+9 V</text>
+<line x1="30" x2="1054" y1="59" y2="59" class="ray-eks"/>
+<text x="1058" y="54" class="ray-yazi">GND</text>
+<line x1="30" x2="1054" y1="265" y2="265" class="ray-eks"/>
+<text x="1058" y="278" class="ray-yazi">GND</text>
+<line x1="30" x2="1054" y1="299" y2="299" class="ray-art"/>
+<text x="1058" y="294" class="ray-yazi">−9 V</text>
+<text x="24" y="86" class="koord">a</text>
+<text x="24" y="102" class="koord">b</text>
+<text x="24" y="118" class="koord">c</text>
+<text x="24" y="134" class="koord">d</text>
+<text x="24" y="150" class="koord">e</text>
+<text x="24" y="182" class="koord">f</text>
+<text x="24" y="198" class="koord">g</text>
+<text x="24" y="214" class="koord">h</text>
+<text x="24" y="230" class="koord">i</text>
+<text x="24" y="246" class="koord">j</text>
+<text x="46" y="72" class="koord" text-anchor="middle">1</text>
+<text x="46" y="310" class="koord" text-anchor="middle">1</text>
+<text x="110" y="72" class="koord" text-anchor="middle">5</text>
+<text x="110" y="310" class="koord" text-anchor="middle">5</text>
+<text x="190" y="72" class="koord" text-anchor="middle">10</text>
+<text x="190" y="310" class="koord" text-anchor="middle">10</text>
+<text x="270" y="72" class="koord" text-anchor="middle">15</text>
+<text x="270" y="310" class="koord" text-anchor="middle">15</text>
+<text x="350" y="72" class="koord" text-anchor="middle">20</text>
+<text x="350" y="310" class="koord" text-anchor="middle">20</text>
+<text x="430" y="72" class="koord" text-anchor="middle">25</text>
+<text x="430" y="310" class="koord" text-anchor="middle">25</text>
+<text x="510" y="72" class="koord" text-anchor="middle">30</text>
+<text x="510" y="310" class="koord" text-anchor="middle">30</text>
+<text x="590" y="72" class="koord" text-anchor="middle">35</text>
+<text x="590" y="310" class="koord" text-anchor="middle">35</text>
+<text x="670" y="72" class="koord" text-anchor="middle">40</text>
+<text x="670" y="310" class="koord" text-anchor="middle">40</text>
+<text x="750" y="72" class="koord" text-anchor="middle">45</text>
+<text x="750" y="310" class="koord" text-anchor="middle">45</text>
+<text x="830" y="72" class="koord" text-anchor="middle">50</text>
+<text x="830" y="310" class="koord" text-anchor="middle">50</text>
+<text x="910" y="72" class="koord" text-anchor="middle">55</text>
+<text x="910" y="310" class="koord" text-anchor="middle">55</text>
+<text x="990" y="72" class="koord" text-anchor="middle">60</text>
+<text x="990" y="310" class="koord" text-anchor="middle">60</text>
+<rect x="42.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+1"/>
+<rect x="58.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+2"/>
+<rect x="74.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+3"/>
+<rect x="90.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+4"/>
+<rect x="106.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+5"/>
+<rect x="122.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+6"/>
+<rect x="138.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+7"/>
+<rect x="154.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+8"/>
+<rect x="170.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+9"/>
+<rect x="186.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+10"/>
+<rect x="202.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+11"/>
+<rect x="218.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+12"/>
+<rect x="234.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+13"/>
+<rect x="250.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+14"/>
+<rect x="266.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+15"/>
+<rect x="282.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+16"/>
+<rect x="298.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+17"/>
+<rect x="314.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+18"/>
+<rect x="330.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+19"/>
+<rect x="346.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+20"/>
+<rect x="362.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+21"/>
+<rect x="378.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+22"/>
+<rect x="394.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+23"/>
+<rect x="410.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+24"/>
+<rect x="426.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+25"/>
+<rect x="442.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+26"/>
+<rect x="458.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+27"/>
+<rect x="474.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+28"/>
+<rect x="490.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+29"/>
+<rect x="506.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+30"/>
+<rect x="522.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+31"/>
+<rect x="538.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+32"/>
+<rect x="554.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+33"/>
+<rect x="570.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+34"/>
+<rect x="586.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+35"/>
+<rect x="602.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+36"/>
+<rect x="618.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+37"/>
+<rect x="634.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+38"/>
+<rect x="650.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+39"/>
+<rect x="666.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+40"/>
+<rect x="682.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+41"/>
+<rect x="698.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+42"/>
+<rect x="714.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+43"/>
+<rect x="730.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+44"/>
+<rect x="746.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+45"/>
+<rect x="762.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+46"/>
+<rect x="778.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+47"/>
+<rect x="794.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+48"/>
+<rect x="810.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+49"/>
+<rect x="826.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+50"/>
+<rect x="842.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+51"/>
+<rect x="858.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+52"/>
+<rect x="874.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+53"/>
+<rect x="890.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+54"/>
+<rect x="906.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+55"/>
+<rect x="922.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+56"/>
+<rect x="938.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+57"/>
+<rect x="954.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+58"/>
+<rect x="970.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+59"/>
+<rect x="986.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+60"/>
+<rect x="1002.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+61"/>
+<rect x="1018.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+62"/>
+<rect x="1034.5" y="30.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="P+63"/>
+<rect x="42.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG1"/>
+<rect x="58.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG2"/>
+<rect x="74.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG3"/>
+<rect x="90.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG4"/>
+<rect x="106.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG5"/>
+<rect x="122.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG6"/>
+<rect x="138.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG7"/>
+<rect x="154.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG8"/>
+<rect x="170.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG9"/>
+<rect x="186.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG10"/>
+<rect x="202.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG11"/>
+<rect x="218.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG12"/>
+<rect x="234.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG13"/>
+<rect x="250.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG14"/>
+<rect x="266.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG15"/>
+<rect x="282.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG16"/>
+<rect x="298.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG17"/>
+<rect x="314.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG18"/>
+<rect x="330.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG19"/>
+<rect x="346.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG20"/>
+<rect x="362.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG21"/>
+<rect x="378.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG22"/>
+<rect x="394.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG23"/>
+<rect x="410.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG24"/>
+<rect x="426.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG25"/>
+<rect x="442.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG26"/>
+<rect x="458.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG27"/>
+<rect x="474.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG28"/>
+<rect x="490.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG29"/>
+<rect x="506.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG30"/>
+<rect x="522.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG31"/>
+<rect x="538.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG32"/>
+<rect x="554.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG33"/>
+<rect x="570.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG34"/>
+<rect x="586.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG35"/>
+<rect x="602.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG36"/>
+<rect x="618.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG37"/>
+<rect x="634.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG38"/>
+<rect x="650.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG39"/>
+<rect x="666.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG40"/>
+<rect x="682.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG41"/>
+<rect x="698.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG42"/>
+<rect x="714.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG43"/>
+<rect x="730.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG44"/>
+<rect x="746.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG45"/>
+<rect x="762.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG46"/>
+<rect x="778.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG47"/>
+<rect x="794.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG48"/>
+<rect x="810.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG49"/>
+<rect x="826.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG50"/>
+<rect x="842.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG51"/>
+<rect x="858.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG52"/>
+<rect x="874.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG53"/>
+<rect x="890.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG54"/>
+<rect x="906.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG55"/>
+<rect x="922.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG56"/>
+<rect x="938.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG57"/>
+<rect x="954.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG58"/>
+<rect x="970.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG59"/>
+<rect x="986.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG60"/>
+<rect x="1002.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG61"/>
+<rect x="1018.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG62"/>
+<rect x="1034.5" y="46.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="PG63"/>
+<rect x="42.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG1"/>
+<rect x="58.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG2"/>
+<rect x="74.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG3"/>
+<rect x="90.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG4"/>
+<rect x="106.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG5"/>
+<rect x="122.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG6"/>
+<rect x="138.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG7"/>
+<rect x="154.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG8"/>
+<rect x="170.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG9"/>
+<rect x="186.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG10"/>
+<rect x="202.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG11"/>
+<rect x="218.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG12"/>
+<rect x="234.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG13"/>
+<rect x="250.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG14"/>
+<rect x="266.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG15"/>
+<rect x="282.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG16"/>
+<rect x="298.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG17"/>
+<rect x="314.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG18"/>
+<rect x="330.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG19"/>
+<rect x="346.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG20"/>
+<rect x="362.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG21"/>
+<rect x="378.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG22"/>
+<rect x="394.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG23"/>
+<rect x="410.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG24"/>
+<rect x="426.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG25"/>
+<rect x="442.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG26"/>
+<rect x="458.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG27"/>
+<rect x="474.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG28"/>
+<rect x="490.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG29"/>
+<rect x="506.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG30"/>
+<rect x="522.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG31"/>
+<rect x="538.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG32"/>
+<rect x="554.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG33"/>
+<rect x="570.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG34"/>
+<rect x="586.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG35"/>
+<rect x="602.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG36"/>
+<rect x="618.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG37"/>
+<rect x="634.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG38"/>
+<rect x="650.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG39"/>
+<rect x="666.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG40"/>
+<rect x="682.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG41"/>
+<rect x="698.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG42"/>
+<rect x="714.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG43"/>
+<rect x="730.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG44"/>
+<rect x="746.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG45"/>
+<rect x="762.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG46"/>
+<rect x="778.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG47"/>
+<rect x="794.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG48"/>
+<rect x="810.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG49"/>
+<rect x="826.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG50"/>
+<rect x="842.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG51"/>
+<rect x="858.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG52"/>
+<rect x="874.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG53"/>
+<rect x="890.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG54"/>
+<rect x="906.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG55"/>
+<rect x="922.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG56"/>
+<rect x="938.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG57"/>
+<rect x="954.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG58"/>
+<rect x="970.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG59"/>
+<rect x="986.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG60"/>
+<rect x="1002.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG61"/>
+<rect x="1018.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG62"/>
+<rect x="1034.5" y="270.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="QG63"/>
+<rect x="42.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-1"/>
+<rect x="58.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-2"/>
+<rect x="74.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-3"/>
+<rect x="90.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-4"/>
+<rect x="106.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-5"/>
+<rect x="122.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-6"/>
+<rect x="138.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-7"/>
+<rect x="154.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-8"/>
+<rect x="170.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-9"/>
+<rect x="186.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-10"/>
+<rect x="202.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-11"/>
+<rect x="218.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-12"/>
+<rect x="234.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-13"/>
+<rect x="250.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-14"/>
+<rect x="266.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-15"/>
+<rect x="282.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-16"/>
+<rect x="298.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-17"/>
+<rect x="314.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-18"/>
+<rect x="330.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-19"/>
+<rect x="346.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-20"/>
+<rect x="362.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-21"/>
+<rect x="378.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-22"/>
+<rect x="394.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-23"/>
+<rect x="410.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-24"/>
+<rect x="426.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-25"/>
+<rect x="442.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-26"/>
+<rect x="458.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-27"/>
+<rect x="474.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-28"/>
+<rect x="490.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-29"/>
+<rect x="506.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-30"/>
+<rect x="522.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-31"/>
+<rect x="538.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-32"/>
+<rect x="554.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-33"/>
+<rect x="570.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-34"/>
+<rect x="586.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-35"/>
+<rect x="602.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-36"/>
+<rect x="618.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-37"/>
+<rect x="634.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-38"/>
+<rect x="650.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-39"/>
+<rect x="666.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-40"/>
+<rect x="682.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-41"/>
+<rect x="698.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-42"/>
+<rect x="714.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-43"/>
+<rect x="730.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-44"/>
+<rect x="746.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-45"/>
+<rect x="762.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-46"/>
+<rect x="778.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-47"/>
+<rect x="794.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-48"/>
+<rect x="810.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-49"/>
+<rect x="826.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-50"/>
+<rect x="842.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-51"/>
+<rect x="858.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-52"/>
+<rect x="874.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-53"/>
+<rect x="890.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-54"/>
+<rect x="906.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-55"/>
+<rect x="922.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-56"/>
+<rect x="938.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-57"/>
+<rect x="954.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-58"/>
+<rect x="970.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-59"/>
+<rect x="986.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-60"/>
+<rect x="1002.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-61"/>
+<rect x="1018.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-62"/>
+<rect x="1034.5" y="286.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="Q-63"/>
+<rect x="42.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a1"/>
+<rect x="58.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a2"/>
+<rect x="74.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a3"/>
+<rect x="90.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a4"/>
+<rect x="106.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a5"/>
+<rect x="122.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a6"/>
+<rect x="138.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="a7"/>
+<rect x="154.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="a8"/>
+<rect x="170.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="a9"/>
+<rect x="186.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP1 (ham sinyal)" data-d="a10"/>
+<rect x="202.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="a11"/>
+<rect x="218.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T alt kol ortası" data-d="a12"/>
+<rect x="234.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a13"/>
+<rect x="250.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="a14"/>
+<rect x="266.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 1" data-d="a15"/>
+<rect x="282.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a16"/>
+<rect x="298.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a17"/>
+<rect x="314.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T üst kol ortası" data-d="a18"/>
+<rect x="330.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a19"/>
+<rect x="346.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="a20"/>
+<rect x="362.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a21"/>
+<rect x="378.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a22"/>
+<rect x="394.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 2" data-d="a23"/>
+<rect x="410.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a24"/>
+<rect x="426.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a25"/>
+<rect x="442.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="a26"/>
+<rect x="458.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a27"/>
+<rect x="474.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a28"/>
+<rect x="490.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a29"/>
+<rect x="506.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a30"/>
+<rect x="522.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a31"/>
+<rect x="538.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a32"/>
+<rect x="554.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a33"/>
+<rect x="570.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a34"/>
+<rect x="586.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a35"/>
+<rect x="602.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a36"/>
+<rect x="618.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a37"/>
+<rect x="634.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a38"/>
+<rect x="650.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a39"/>
+<rect x="666.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP4 (çıkış)" data-d="a40"/>
+<rect x="682.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN D" data-d="a41"/>
+<rect x="698.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN D" data-d="a42"/>
+<rect x="714.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="a43"/>
+<rect x="730.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN C" data-d="a44"/>
+<rect x="746.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN C" data-d="a45"/>
+<rect x="762.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="a46"/>
+<rect x="778.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="a47"/>
+<rect x="794.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="a48"/>
+<rect x="810.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="Sallen-Key orta" data-d="a49"/>
+<rect x="826.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a50"/>
+<rect x="842.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a51"/>
+<rect x="858.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a52"/>
+<rect x="874.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="a53"/>
+<rect x="890.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a54"/>
+<rect x="906.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a55"/>
+<rect x="922.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a56"/>
+<rect x="938.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a57"/>
+<rect x="954.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a58"/>
+<rect x="970.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a59"/>
+<rect x="986.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a60"/>
+<rect x="1002.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a61"/>
+<rect x="1018.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a62"/>
+<rect x="1034.5" y="78.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="a63"/>
+<rect x="42.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b1"/>
+<rect x="58.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b2"/>
+<rect x="74.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b3"/>
+<rect x="90.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b4"/>
+<rect x="106.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b5"/>
+<rect x="122.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b6"/>
+<rect x="138.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="b7"/>
+<rect x="154.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="b8"/>
+<rect x="170.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="b9"/>
+<rect x="186.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP1 (ham sinyal)" data-d="b10"/>
+<rect x="202.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="b11"/>
+<rect x="218.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T alt kol ortası" data-d="b12"/>
+<rect x="234.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b13"/>
+<rect x="250.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="b14"/>
+<rect x="266.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 1" data-d="b15"/>
+<rect x="282.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b16"/>
+<rect x="298.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b17"/>
+<rect x="314.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T üst kol ortası" data-d="b18"/>
+<rect x="330.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b19"/>
+<rect x="346.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="b20"/>
+<rect x="362.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b21"/>
+<rect x="378.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b22"/>
+<rect x="394.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 2" data-d="b23"/>
+<rect x="410.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b24"/>
+<rect x="426.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b25"/>
+<rect x="442.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="b26"/>
+<rect x="458.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b27"/>
+<rect x="474.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b28"/>
+<rect x="490.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b29"/>
+<rect x="506.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b30"/>
+<rect x="522.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b31"/>
+<rect x="538.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b32"/>
+<rect x="554.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b33"/>
+<rect x="570.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b34"/>
+<rect x="586.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b35"/>
+<rect x="602.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b36"/>
+<rect x="618.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b37"/>
+<rect x="634.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b38"/>
+<rect x="650.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b39"/>
+<rect x="666.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP4 (çıkış)" data-d="b40"/>
+<rect x="682.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN D" data-d="b41"/>
+<rect x="698.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN D" data-d="b42"/>
+<rect x="714.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="b43"/>
+<rect x="730.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN C" data-d="b44"/>
+<rect x="746.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN C" data-d="b45"/>
+<rect x="762.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="b46"/>
+<rect x="778.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="b47"/>
+<rect x="794.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="b48"/>
+<rect x="810.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="Sallen-Key orta" data-d="b49"/>
+<rect x="826.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b50"/>
+<rect x="842.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b51"/>
+<rect x="858.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b52"/>
+<rect x="874.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="b53"/>
+<rect x="890.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b54"/>
+<rect x="906.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b55"/>
+<rect x="922.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b56"/>
+<rect x="938.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b57"/>
+<rect x="954.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b58"/>
+<rect x="970.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b59"/>
+<rect x="986.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b60"/>
+<rect x="1002.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b61"/>
+<rect x="1018.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b62"/>
+<rect x="1034.5" y="94.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="b63"/>
+<rect x="42.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c1"/>
+<rect x="58.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c2"/>
+<rect x="74.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c3"/>
+<rect x="90.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c4"/>
+<rect x="106.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c5"/>
+<rect x="122.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c6"/>
+<rect x="138.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="c7"/>
+<rect x="154.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="c8"/>
+<rect x="170.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="c9"/>
+<rect x="186.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP1 (ham sinyal)" data-d="c10"/>
+<rect x="202.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="c11"/>
+<rect x="218.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T alt kol ortası" data-d="c12"/>
+<rect x="234.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c13"/>
+<rect x="250.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="c14"/>
+<rect x="266.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 1" data-d="c15"/>
+<rect x="282.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c16"/>
+<rect x="298.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c17"/>
+<rect x="314.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T üst kol ortası" data-d="c18"/>
+<rect x="330.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c19"/>
+<rect x="346.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="c20"/>
+<rect x="362.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c21"/>
+<rect x="378.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c22"/>
+<rect x="394.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 2" data-d="c23"/>
+<rect x="410.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c24"/>
+<rect x="426.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c25"/>
+<rect x="442.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="c26"/>
+<rect x="458.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c27"/>
+<rect x="474.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c28"/>
+<rect x="490.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c29"/>
+<rect x="506.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c30"/>
+<rect x="522.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c31"/>
+<rect x="538.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c32"/>
+<rect x="554.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c33"/>
+<rect x="570.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c34"/>
+<rect x="586.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c35"/>
+<rect x="602.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c36"/>
+<rect x="618.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c37"/>
+<rect x="634.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c38"/>
+<rect x="650.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c39"/>
+<rect x="666.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP4 (çıkış)" data-d="c40"/>
+<rect x="682.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN D" data-d="c41"/>
+<rect x="698.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN D" data-d="c42"/>
+<rect x="714.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="c43"/>
+<rect x="730.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN C" data-d="c44"/>
+<rect x="746.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN C" data-d="c45"/>
+<rect x="762.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="c46"/>
+<rect x="778.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="c47"/>
+<rect x="794.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="c48"/>
+<rect x="810.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="Sallen-Key orta" data-d="c49"/>
+<rect x="826.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c50"/>
+<rect x="842.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c51"/>
+<rect x="858.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c52"/>
+<rect x="874.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="c53"/>
+<rect x="890.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c54"/>
+<rect x="906.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c55"/>
+<rect x="922.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c56"/>
+<rect x="938.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c57"/>
+<rect x="954.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c58"/>
+<rect x="970.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c59"/>
+<rect x="986.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c60"/>
+<rect x="1002.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c61"/>
+<rect x="1018.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c62"/>
+<rect x="1034.5" y="110.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="c63"/>
+<rect x="42.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d1"/>
+<rect x="58.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d2"/>
+<rect x="74.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d3"/>
+<rect x="90.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d4"/>
+<rect x="106.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d5"/>
+<rect x="122.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d6"/>
+<rect x="138.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="d7"/>
+<rect x="154.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="d8"/>
+<rect x="170.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="d9"/>
+<rect x="186.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP1 (ham sinyal)" data-d="d10"/>
+<rect x="202.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="d11"/>
+<rect x="218.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T alt kol ortası" data-d="d12"/>
+<rect x="234.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d13"/>
+<rect x="250.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="d14"/>
+<rect x="266.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 1" data-d="d15"/>
+<rect x="282.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d16"/>
+<rect x="298.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d17"/>
+<rect x="314.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T üst kol ortası" data-d="d18"/>
+<rect x="330.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d19"/>
+<rect x="346.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="d20"/>
+<rect x="362.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d21"/>
+<rect x="378.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d22"/>
+<rect x="394.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 2" data-d="d23"/>
+<rect x="410.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d24"/>
+<rect x="426.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d25"/>
+<rect x="442.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="d26"/>
+<rect x="458.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d27"/>
+<rect x="474.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d28"/>
+<rect x="490.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d29"/>
+<rect x="506.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d30"/>
+<rect x="522.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d31"/>
+<rect x="538.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d32"/>
+<rect x="554.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d33"/>
+<rect x="570.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d34"/>
+<rect x="586.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d35"/>
+<rect x="602.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d36"/>
+<rect x="618.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d37"/>
+<rect x="634.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d38"/>
+<rect x="650.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d39"/>
+<rect x="666.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP4 (çıkış)" data-d="d40"/>
+<rect x="682.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN D" data-d="d41"/>
+<rect x="698.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN D" data-d="d42"/>
+<rect x="714.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="d43"/>
+<rect x="730.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN C" data-d="d44"/>
+<rect x="746.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN C" data-d="d45"/>
+<rect x="762.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="d46"/>
+<rect x="778.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="d47"/>
+<rect x="794.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="d48"/>
+<rect x="810.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="Sallen-Key orta" data-d="d49"/>
+<rect x="826.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d50"/>
+<rect x="842.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d51"/>
+<rect x="858.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d52"/>
+<rect x="874.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="d53"/>
+<rect x="890.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d54"/>
+<rect x="906.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d55"/>
+<rect x="922.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d56"/>
+<rect x="938.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d57"/>
+<rect x="954.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d58"/>
+<rect x="970.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d59"/>
+<rect x="986.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d60"/>
+<rect x="1002.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d61"/>
+<rect x="1018.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d62"/>
+<rect x="1034.5" y="126.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="d63"/>
+<rect x="42.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e1"/>
+<rect x="58.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e2"/>
+<rect x="74.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e3"/>
+<rect x="90.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e4"/>
+<rect x="106.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e5"/>
+<rect x="122.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e6"/>
+<rect x="138.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="e7"/>
+<rect x="154.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 8)" data-d="e8"/>
+<rect x="170.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="e9"/>
+<rect x="186.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP1 (ham sinyal)" data-d="e10"/>
+<rect x="202.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="GND" data-d="e11"/>
+<rect x="218.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T alt kol ortası" data-d="e12"/>
+<rect x="234.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e13"/>
+<rect x="250.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="e14"/>
+<rect x="266.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 1" data-d="e15"/>
+<rect x="282.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e16"/>
+<rect x="298.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e17"/>
+<rect x="314.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T üst kol ortası" data-d="e18"/>
+<rect x="330.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e19"/>
+<rect x="346.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="e20"/>
+<rect x="362.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e21"/>
+<rect x="378.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e22"/>
+<rect x="394.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T R ara 2" data-d="e23"/>
+<rect x="410.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e24"/>
+<rect x="426.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e25"/>
+<rect x="442.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="e26"/>
+<rect x="458.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e27"/>
+<rect x="474.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e28"/>
+<rect x="490.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e29"/>
+<rect x="506.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e30"/>
+<rect x="522.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e31"/>
+<rect x="538.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e32"/>
+<rect x="554.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e33"/>
+<rect x="570.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e34"/>
+<rect x="586.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e35"/>
+<rect x="602.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e36"/>
+<rect x="618.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e37"/>
+<rect x="634.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e38"/>
+<rect x="650.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e39"/>
+<rect x="666.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP4 (çıkış)" data-d="e40"/>
+<rect x="682.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN D" data-d="e41"/>
+<rect x="698.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN D" data-d="e42"/>
+<rect x="714.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="e43"/>
+<rect x="730.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN C" data-d="e44"/>
+<rect x="746.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="−IN C" data-d="e45"/>
+<rect x="762.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="e46"/>
+<rect x="778.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP3 (alçak geçiren çıkışı)" data-d="e47"/>
+<rect x="794.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="e48"/>
+<rect x="810.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="Sallen-Key orta" data-d="e49"/>
+<rect x="826.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e50"/>
+<rect x="842.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e51"/>
+<rect x="858.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e52"/>
+<rect x="874.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="e53"/>
+<rect x="890.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e54"/>
+<rect x="906.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e55"/>
+<rect x="922.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e56"/>
+<rect x="938.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e57"/>
+<rect x="954.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e58"/>
+<rect x="970.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e59"/>
+<rect x="986.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e60"/>
+<rect x="1002.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e61"/>
+<rect x="1018.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e62"/>
+<rect x="1034.5" y="142.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="e63"/>
+<rect x="42.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f1"/>
+<rect x="58.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot −" data-d="f2"/>
+<rect x="74.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f3"/>
+<rect x="90.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot +" data-d="f4"/>
+<rect x="106.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Referans elektrot" data-d="f5"/>
+<rect x="122.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f6"/>
+<rect x="138.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="f7"/>
+<rect x="154.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="f8"/>
+<rect x="170.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 −IN" data-d="f9"/>
+<rect x="186.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 +IN" data-d="f10"/>
+<rect x="202.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="f11"/>
+<rect x="218.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="R/2 ara" data-d="f12"/>
+<rect x="234.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="f13"/>
+<rect x="250.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Trimpot boş bacak" data-d="f14"/>
+<rect x="266.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f15"/>
+<rect x="282.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f16"/>
+<rect x="298.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f17"/>
+<rect x="314.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f18"/>
+<rect x="330.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f19"/>
+<rect x="346.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f20"/>
+<rect x="362.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f21"/>
+<rect x="378.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f22"/>
+<rect x="394.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f23"/>
+<rect x="410.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f24"/>
+<rect x="426.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f25"/>
+<rect x="442.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f26"/>
+<rect x="458.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f27"/>
+<rect x="474.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f28"/>
+<rect x="490.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f29"/>
+<rect x="506.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f30"/>
+<rect x="522.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f31"/>
+<rect x="538.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f32"/>
+<rect x="554.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f33"/>
+<rect x="570.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f34"/>
+<rect x="586.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f35"/>
+<rect x="602.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f36"/>
+<rect x="618.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f37"/>
+<rect x="634.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f38"/>
+<rect x="650.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f39"/>
+<rect x="666.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="f40"/>
+<rect x="682.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="f41"/>
+<rect x="698.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="f42"/>
+<rect x="714.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="f43"/>
+<rect x="730.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN B" data-d="f44"/>
+<rect x="746.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="f45"/>
+<rect x="762.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="f46"/>
+<rect x="778.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f47"/>
+<rect x="794.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f48"/>
+<rect x="810.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f49"/>
+<rect x="826.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f50"/>
+<rect x="842.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f51"/>
+<rect x="858.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f52"/>
+<rect x="874.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f53"/>
+<rect x="890.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f54"/>
+<rect x="906.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f55"/>
+<rect x="922.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f56"/>
+<rect x="938.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f57"/>
+<rect x="954.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f58"/>
+<rect x="970.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f59"/>
+<rect x="986.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f60"/>
+<rect x="1002.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f61"/>
+<rect x="1018.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f62"/>
+<rect x="1034.5" y="174.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="f63"/>
+<rect x="42.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g1"/>
+<rect x="58.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot −" data-d="g2"/>
+<rect x="74.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g3"/>
+<rect x="90.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot +" data-d="g4"/>
+<rect x="106.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Referans elektrot" data-d="g5"/>
+<rect x="122.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g6"/>
+<rect x="138.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="g7"/>
+<rect x="154.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="g8"/>
+<rect x="170.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 −IN" data-d="g9"/>
+<rect x="186.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 +IN" data-d="g10"/>
+<rect x="202.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="g11"/>
+<rect x="218.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="R/2 ara" data-d="g12"/>
+<rect x="234.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="g13"/>
+<rect x="250.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Trimpot boş bacak" data-d="g14"/>
+<rect x="266.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g15"/>
+<rect x="282.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g16"/>
+<rect x="298.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g17"/>
+<rect x="314.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g18"/>
+<rect x="330.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g19"/>
+<rect x="346.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g20"/>
+<rect x="362.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g21"/>
+<rect x="378.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g22"/>
+<rect x="394.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g23"/>
+<rect x="410.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g24"/>
+<rect x="426.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g25"/>
+<rect x="442.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g26"/>
+<rect x="458.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g27"/>
+<rect x="474.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g28"/>
+<rect x="490.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g29"/>
+<rect x="506.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g30"/>
+<rect x="522.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g31"/>
+<rect x="538.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g32"/>
+<rect x="554.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g33"/>
+<rect x="570.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g34"/>
+<rect x="586.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g35"/>
+<rect x="602.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g36"/>
+<rect x="618.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g37"/>
+<rect x="634.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g38"/>
+<rect x="650.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g39"/>
+<rect x="666.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="g40"/>
+<rect x="682.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="g41"/>
+<rect x="698.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="g42"/>
+<rect x="714.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="g43"/>
+<rect x="730.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN B" data-d="g44"/>
+<rect x="746.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="g45"/>
+<rect x="762.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="g46"/>
+<rect x="778.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g47"/>
+<rect x="794.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g48"/>
+<rect x="810.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g49"/>
+<rect x="826.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g50"/>
+<rect x="842.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g51"/>
+<rect x="858.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g52"/>
+<rect x="874.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g53"/>
+<rect x="890.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g54"/>
+<rect x="906.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g55"/>
+<rect x="922.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g56"/>
+<rect x="938.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g57"/>
+<rect x="954.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g58"/>
+<rect x="970.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g59"/>
+<rect x="986.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g60"/>
+<rect x="1002.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g61"/>
+<rect x="1018.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g62"/>
+<rect x="1034.5" y="190.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="g63"/>
+<rect x="42.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h1"/>
+<rect x="58.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot −" data-d="h2"/>
+<rect x="74.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h3"/>
+<rect x="90.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot +" data-d="h4"/>
+<rect x="106.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Referans elektrot" data-d="h5"/>
+<rect x="122.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h6"/>
+<rect x="138.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="h7"/>
+<rect x="154.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="h8"/>
+<rect x="170.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 −IN" data-d="h9"/>
+<rect x="186.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 +IN" data-d="h10"/>
+<rect x="202.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="h11"/>
+<rect x="218.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="R/2 ara" data-d="h12"/>
+<rect x="234.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="h13"/>
+<rect x="250.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Trimpot boş bacak" data-d="h14"/>
+<rect x="266.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h15"/>
+<rect x="282.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h16"/>
+<rect x="298.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h17"/>
+<rect x="314.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h18"/>
+<rect x="330.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h19"/>
+<rect x="346.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h20"/>
+<rect x="362.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h21"/>
+<rect x="378.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h22"/>
+<rect x="394.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h23"/>
+<rect x="410.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h24"/>
+<rect x="426.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h25"/>
+<rect x="442.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h26"/>
+<rect x="458.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h27"/>
+<rect x="474.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h28"/>
+<rect x="490.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h29"/>
+<rect x="506.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h30"/>
+<rect x="522.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h31"/>
+<rect x="538.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h32"/>
+<rect x="554.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h33"/>
+<rect x="570.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h34"/>
+<rect x="586.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h35"/>
+<rect x="602.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h36"/>
+<rect x="618.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h37"/>
+<rect x="634.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h38"/>
+<rect x="650.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h39"/>
+<rect x="666.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="h40"/>
+<rect x="682.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="h41"/>
+<rect x="698.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="h42"/>
+<rect x="714.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="h43"/>
+<rect x="730.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN B" data-d="h44"/>
+<rect x="746.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="h45"/>
+<rect x="762.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="h46"/>
+<rect x="778.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h47"/>
+<rect x="794.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h48"/>
+<rect x="810.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h49"/>
+<rect x="826.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h50"/>
+<rect x="842.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h51"/>
+<rect x="858.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h52"/>
+<rect x="874.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h53"/>
+<rect x="890.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h54"/>
+<rect x="906.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h55"/>
+<rect x="922.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h56"/>
+<rect x="938.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h57"/>
+<rect x="954.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h58"/>
+<rect x="970.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h59"/>
+<rect x="986.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h60"/>
+<rect x="1002.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h61"/>
+<rect x="1018.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h62"/>
+<rect x="1034.5" y="206.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="h63"/>
+<rect x="42.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i1"/>
+<rect x="58.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot −" data-d="i2"/>
+<rect x="74.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i3"/>
+<rect x="90.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot +" data-d="i4"/>
+<rect x="106.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Referans elektrot" data-d="i5"/>
+<rect x="122.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i6"/>
+<rect x="138.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="i7"/>
+<rect x="154.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="i8"/>
+<rect x="170.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 −IN" data-d="i9"/>
+<rect x="186.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 +IN" data-d="i10"/>
+<rect x="202.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="i11"/>
+<rect x="218.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="R/2 ara" data-d="i12"/>
+<rect x="234.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="i13"/>
+<rect x="250.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Trimpot boş bacak" data-d="i14"/>
+<rect x="266.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i15"/>
+<rect x="282.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i16"/>
+<rect x="298.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i17"/>
+<rect x="314.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i18"/>
+<rect x="330.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i19"/>
+<rect x="346.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i20"/>
+<rect x="362.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i21"/>
+<rect x="378.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i22"/>
+<rect x="394.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i23"/>
+<rect x="410.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i24"/>
+<rect x="426.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i25"/>
+<rect x="442.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i26"/>
+<rect x="458.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i27"/>
+<rect x="474.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i28"/>
+<rect x="490.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i29"/>
+<rect x="506.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i30"/>
+<rect x="522.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i31"/>
+<rect x="538.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i32"/>
+<rect x="554.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i33"/>
+<rect x="570.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i34"/>
+<rect x="586.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i35"/>
+<rect x="602.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i36"/>
+<rect x="618.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i37"/>
+<rect x="634.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i38"/>
+<rect x="650.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i39"/>
+<rect x="666.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="i40"/>
+<rect x="682.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="i41"/>
+<rect x="698.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="i42"/>
+<rect x="714.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="i43"/>
+<rect x="730.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN B" data-d="i44"/>
+<rect x="746.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="i45"/>
+<rect x="762.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="i46"/>
+<rect x="778.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i47"/>
+<rect x="794.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i48"/>
+<rect x="810.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i49"/>
+<rect x="826.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i50"/>
+<rect x="842.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i51"/>
+<rect x="858.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i52"/>
+<rect x="874.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i53"/>
+<rect x="890.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i54"/>
+<rect x="906.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i55"/>
+<rect x="922.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i56"/>
+<rect x="938.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i57"/>
+<rect x="954.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i58"/>
+<rect x="970.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i59"/>
+<rect x="986.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i60"/>
+<rect x="1002.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i61"/>
+<rect x="1018.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i62"/>
+<rect x="1034.5" y="222.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="i63"/>
+<rect x="42.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j1"/>
+<rect x="58.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot −" data-d="j2"/>
+<rect x="74.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j3"/>
+<rect x="90.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Elektrot +" data-d="j4"/>
+<rect x="106.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Referans elektrot" data-d="j5"/>
+<rect x="122.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j6"/>
+<rect x="138.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="j7"/>
+<rect x="154.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="RG (bacak 1)" data-d="j8"/>
+<rect x="170.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 −IN" data-d="j9"/>
+<rect x="186.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="AD620 +IN" data-d="j10"/>
+<rect x="202.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="−9 V" data-d="j11"/>
+<rect x="218.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="R/2 ara" data-d="j12"/>
+<rect x="234.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="j13"/>
+<rect x="250.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Trimpot boş bacak" data-d="j14"/>
+<rect x="266.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j15"/>
+<rect x="282.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j16"/>
+<rect x="298.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j17"/>
+<rect x="314.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j18"/>
+<rect x="330.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j19"/>
+<rect x="346.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j20"/>
+<rect x="362.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j21"/>
+<rect x="378.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j22"/>
+<rect x="394.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j23"/>
+<rect x="410.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j24"/>
+<rect x="426.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j25"/>
+<rect x="442.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j26"/>
+<rect x="458.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j27"/>
+<rect x="474.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j28"/>
+<rect x="490.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j29"/>
+<rect x="506.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j30"/>
+<rect x="522.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j31"/>
+<rect x="538.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j32"/>
+<rect x="554.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j33"/>
+<rect x="570.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j34"/>
+<rect x="586.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j35"/>
+<rect x="602.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j36"/>
+<rect x="618.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j37"/>
+<rect x="634.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j38"/>
+<rect x="650.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j39"/>
+<rect x="666.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="j40"/>
+<rect x="682.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="TP2 (çentik çıkışı)" data-d="j41"/>
+<rect x="698.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Twin-T çıkışı" data-d="j42"/>
+<rect x="714.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="+9 V" data-d="j43"/>
+<rect x="730.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="+IN B" data-d="j44"/>
+<rect x="746.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="j45"/>
+<rect x="762.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="Vf (geri besleme)" data-d="j46"/>
+<rect x="778.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j47"/>
+<rect x="794.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j48"/>
+<rect x="810.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j49"/>
+<rect x="826.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j50"/>
+<rect x="842.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j51"/>
+<rect x="858.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j52"/>
+<rect x="874.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j53"/>
+<rect x="890.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j54"/>
+<rect x="906.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j55"/>
+<rect x="922.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j56"/>
+<rect x="938.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j57"/>
+<rect x="954.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j58"/>
+<rect x="970.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j59"/>
+<rect x="986.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j60"/>
+<rect x="1002.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j61"/>
+<rect x="1018.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j62"/>
+<rect x="1034.5" y="238.5" width="7" height="7" rx="1.5" class="delik" data-ag="" data-d="j63"/>
+<g class="parca kat-ina tur-ic" data-id="U1" data-ag="+9 V|AD620 +IN|AD620 −IN|GND|RG (bacak 1)|RG (bacak 8)|TP1 (ham sinyal)|−9 V" tabindex="0"><rect x="151" y="144" width="62" height="36" rx="3" class="ic-govde"/><path d="M151 157.0 a5 5 0 0 1 0 10" class="ic-centik"/><text x="182.0" y="166.0" class="ic-yazi" text-anchor="middle">AD620</text><rect x="155" y="175" width="6" height="6" class="ic-bacak"/><text x="158" y="191" class="ic-no" text-anchor="middle">1</text><rect x="171" y="175" width="6" height="6" class="ic-bacak"/><text x="174" y="191" class="ic-no" text-anchor="middle">2</text><rect x="187" y="175" width="6" height="6" class="ic-bacak"/><text x="190" y="191" class="ic-no" text-anchor="middle">3</text><rect x="203" y="175" width="6" height="6" class="ic-bacak"/><text x="206" y="191" class="ic-no" text-anchor="middle">4</text><rect x="203" y="143" width="6" height="6" class="ic-bacak"/><text x="206" y="139" class="ic-no" text-anchor="middle">5</text><rect x="187" y="143" width="6" height="6" class="ic-bacak"/><text x="190" y="139" class="ic-no" text-anchor="middle">6</text><rect x="171" y="143" width="6" height="6" class="ic-bacak"/><text x="174" y="139" class="ic-no" text-anchor="middle">7</text><rect x="155" y="143" width="6" height="6" class="ic-bacak"/><text x="158" y="139" class="ic-no" text-anchor="middle">8</text></g>
+<g class="parca kat-lm tur-ic" data-id="U2" data-ag="+9 V|+IN B|+IN C|+IN D|TP2 (çentik çıkışı)|TP3 (alçak geçiren çıkışı)|TP4 (çıkış)|Twin-T çıkışı|Vf (geri besleme)|−9 V|−IN C|−IN D" tabindex="0"><rect x="663" y="144" width="110" height="36" rx="3" class="ic-govde"/><path d="M663 157.0 a5 5 0 0 1 0 10" class="ic-centik"/><text x="718.0" y="166.0" class="ic-yazi" text-anchor="middle">LM324</text><rect x="667" y="175" width="6" height="6" class="ic-bacak"/><text x="670" y="191" class="ic-no" text-anchor="middle">1</text><rect x="683" y="175" width="6" height="6" class="ic-bacak"/><text x="686" y="191" class="ic-no" text-anchor="middle">2</text><rect x="699" y="175" width="6" height="6" class="ic-bacak"/><text x="702" y="191" class="ic-no" text-anchor="middle">3</text><rect x="715" y="175" width="6" height="6" class="ic-bacak"/><text x="718" y="191" class="ic-no" text-anchor="middle">4</text><rect x="731" y="175" width="6" height="6" class="ic-bacak"/><text x="734" y="191" class="ic-no" text-anchor="middle">5</text><rect x="747" y="175" width="6" height="6" class="ic-bacak"/><text x="750" y="191" class="ic-no" text-anchor="middle">6</text><rect x="763" y="175" width="6" height="6" class="ic-bacak"/><text x="766" y="191" class="ic-no" text-anchor="middle">7</text><rect x="763" y="143" width="6" height="6" class="ic-bacak"/><text x="766" y="139" class="ic-no" text-anchor="middle">8</text><rect x="747" y="143" width="6" height="6" class="ic-bacak"/><text x="750" y="139" class="ic-no" text-anchor="middle">9</text><rect x="731" y="143" width="6" height="6" class="ic-bacak"/><text x="734" y="139" class="ic-no" text-anchor="middle">10</text><rect x="715" y="143" width="6" height="6" class="ic-bacak"/><text x="718" y="139" class="ic-no" text-anchor="middle">11</text><rect x="699" y="143" width="6" height="6" class="ic-bacak"/><text x="702" y="139" class="ic-no" text-anchor="middle">12</text><rect x="683" y="143" width="6" height="6" class="ic-bacak"/><text x="686" y="139" class="ic-no" text-anchor="middle">13</text><rect x="667" y="143" width="6" height="6" class="ic-bacak"/><text x="670" y="139" class="ic-no" text-anchor="middle">14</text></g>
+<g class="parca kat-guc tur-pil" data-id="BAT1" data-ag="+9 V|GND" tabindex="0"><path d="M46 34 H14" class="kablo pil-art"/><path d="M46 50 H14" class="kablo pil-eks"/><rect x="2" y="28" width="12" height="28" rx="2" class="pil-govde"/><circle cx="46" cy="34" r="3" class="uc"/><circle cx="46" cy="50" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-pil" data-id="BAT2" data-ag="GND|−9 V" tabindex="0"><path d="M46 274 H14" class="kablo pil-art"/><path d="M46 290 H14" class="kablo pil-eks"/><rect x="2" y="268" width="12" height="28" rx="2" class="pil-govde"/><circle cx="46" cy="274" r="3" class="uc"/><circle cx="46" cy="290" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-elko" data-id="C_B1" data-ag="+9 V|GND" tabindex="0"><path d="M78 34 Q78 28.0 78.0 28.0 Q78 28.0 78 50" class="bacak"/><g transform="translate(78.0 28.0) rotate(0.0)"><rect x="-5.5" y="-5.5" width="11" height="11" rx="5.5" class="elko-govde"/></g><circle cx="78" cy="34" r="2.6" class="uc"/><circle cx="78" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-elko" data-id="C_B2" data-ag="GND|−9 V" tabindex="0"><path d="M78 274 Q78 268.0 78.0 268.0 Q78 268.0 78 290" class="bacak"/><g transform="translate(78.0 268.0) rotate(0.0)"><rect x="-5.5" y="-5.5" width="11" height="11" rx="5.5" class="elko-govde"/></g><circle cx="78" cy="274" r="2.6" class="uc"/><circle cx="78" cy="290" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-seramik" data-id="C_D1" data-ag="+9 V|GND" tabindex="0"><path d="M126 34 Q126 28.0 126.0 28.0 Q126 28.0 126 50" class="bacak"/><g transform="translate(126.0 28.0) rotate(0.0)"><rect x="-4.5" y="-4.5" width="9" height="9" rx="4.5" class="seramik-govde"/></g><circle cx="126" cy="34" r="2.6" class="uc"/><circle cx="126" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-seramik" data-id="C_D2" data-ag="GND|−9 V" tabindex="0"><path d="M126 274 Q126 268.0 126.0 268.0 Q126 268.0 126 290" class="bacak"/><g transform="translate(126.0 268.0) rotate(0.0)"><rect x="-4.5" y="-4.5" width="9" height="9" rx="4.5" class="seramik-govde"/></g><circle cx="126" cy="274" r="2.6" class="uc"/><circle cx="126" cy="290" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-seramik" data-id="C_D3" data-ag="+9 V|GND" tabindex="0"><path d="M830 34 Q830 28.0 830.0 28.0 Q830 28.0 830 50" class="bacak"/><g transform="translate(830.0 28.0) rotate(0.0)"><rect x="-4.5" y="-4.5" width="9" height="9" rx="4.5" class="seramik-govde"/></g><circle cx="830" cy="34" r="2.6" class="uc"/><circle cx="830" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-seramik" data-id="C_D4" data-ag="GND|−9 V" tabindex="0"><path d="M830 274 Q830 268.0 830.0 268.0 Q830 268.0 830 290" class="bacak"/><g transform="translate(830.0 268.0) rotate(0.0)"><rect x="-4.5" y="-4.5" width="9" height="9" rx="4.5" class="seramik-govde"/></g><circle cx="830" cy="274" r="2.6" class="uc"/><circle cx="830" cy="290" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-tel" data-id="W_U1V+" data-ag="+9 V" tabindex="0"><line x1="174" y1="82" x2="174" y2="34" class="kablo duz tel-arti"/><circle cx="174" cy="82" r="3" class="uc"/><circle cx="174" cy="34" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-tel" data-id="W_U1V-" data-ag="−9 V" tabindex="0"><line x1="206" y1="242" x2="206" y2="290" class="kablo duz tel-eksi"/><circle cx="206" cy="242" r="3" class="uc"/><circle cx="206" cy="290" r="3" class="uc"/></g>
+<g class="parca kat-ina tur-direnc" data-id="R_EN" data-ag="AD620 −IN|Elektrot −" tabindex="0"><line x1="62" y1="226" x2="174" y2="226" class="bacak"/><g transform="translate(118.0 226.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="62" cy="226" r="2.6" class="uc"/><circle cx="174" cy="226" r="2.6" class="uc"/></g>
+<g class="parca kat-ina tur-direnc" data-id="R_EP" data-ag="AD620 +IN|Elektrot +" tabindex="0"><line x1="94" y1="210" x2="190" y2="210" class="bacak"/><g transform="translate(142.0 210.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="94" cy="210" r="2.6" class="uc"/><circle cx="190" cy="210" r="2.6" class="uc"/></g>
+<g class="parca kat-ina tur-direnc" data-id="R_ER" data-ag="GND|Referans elektrot" tabindex="0"><line x1="110" y1="242" x2="110" y2="274" class="bacak"/><g transform="translate(110.0 258.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="110" cy="242" r="2.6" class="uc"/><circle cx="110" cy="274" r="2.6" class="uc"/></g>
+<g class="parca kat-ina tur-tel" data-id="W_RG1" data-ag="RG (bacak 8)" tabindex="0"><line x1="158" y1="98" x2="142" y2="98" class="kablo duz tel-sinyal"/><circle cx="158" cy="98" r="3" class="uc"/><circle cx="142" cy="98" r="3" class="uc"/></g>
+<g class="parca kat-ina tur-direnc" data-id="R_G" data-ag="RG (bacak 1)|RG (bacak 8)" tabindex="0"><line x1="142" y1="130" x2="142" y2="178" class="bacak"/><g transform="translate(142.0 154.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">1k</text></g><circle cx="142" cy="130" r="2.6" class="uc"/><circle cx="142" cy="178" r="2.6" class="uc"/></g>
+<g class="parca kat-ina tur-tel" data-id="W_RG2" data-ag="RG (bacak 1)" tabindex="0"><line x1="142" y1="194" x2="158" y2="194" class="kablo duz tel-sinyal"/><circle cx="142" cy="194" r="3" class="uc"/><circle cx="158" cy="194" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_T1" data-ag="TP1 (ham sinyal)|Twin-T R ara 1" tabindex="0"><line x1="190" y1="82" x2="270" y2="82" class="bacak"/><g transform="translate(230.0 82.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">30k</text></g><circle cx="190" cy="82" r="2.6" class="uc"/><circle cx="270" cy="82" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_T2" data-ag="Twin-T R ara 1|Twin-T üst kol ortası" tabindex="0"><line x1="270" y1="98" x2="318" y2="98" class="bacak"/><g transform="translate(294.0 98.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">1,8k</text></g><circle cx="270" cy="98" r="2.6" class="uc"/><circle cx="318" cy="98" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_T3" data-ag="Twin-T R ara 2|Twin-T üst kol ortası" tabindex="0"><line x1="318" y1="82" x2="398" y2="82" class="bacak"/><g transform="translate(358.0 82.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">30k</text></g><circle cx="318" cy="82" r="2.6" class="uc"/><circle cx="398" cy="82" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_T4" data-ag="Twin-T R ara 2|Twin-T çıkışı" tabindex="0"><line x1="398" y1="98" x2="446" y2="98" class="bacak"/><g transform="translate(422.0 98.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">1,8k</text></g><circle cx="398" cy="98" r="2.6" class="uc"/><circle cx="446" cy="98" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-film" data-id="C_T1" data-ag="TP1 (ham sinyal)|Twin-T alt kol ortası" tabindex="0"><line x1="190" y1="114" x2="222" y2="114" class="bacak"/><g transform="translate(206.0 114.0) rotate(0.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">100n</text></g><circle cx="190" cy="114" r="2.6" class="uc"/><circle cx="222" cy="114" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-film" data-id="C_T2" data-ag="Twin-T alt kol ortası|Twin-T çıkışı" tabindex="0"><line x1="222" y1="130" x2="254" y2="130" class="bacak"/><g transform="translate(238.0 130.0) rotate(0.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">100n</text></g><circle cx="222" cy="130" r="2.6" class="uc"/><circle cx="254" cy="130" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-film" data-id="C_T3" data-ag="Twin-T üst kol ortası|Vf (geri besleme)" tabindex="0"><line x1="318" y1="114" x2="350" y2="114" class="bacak"/><g transform="translate(334.0 114.0) rotate(0.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">100n</text></g><circle cx="318" cy="114" r="2.6" class="uc"/><circle cx="350" cy="114" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-film" data-id="C_T4" data-ag="Twin-T üst kol ortası|Vf (geri besleme)" tabindex="0"><line x1="318" y1="130" x2="350" y2="130" class="bacak"/><g transform="translate(334.0 130.0) rotate(0.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">100n</text></g><circle cx="318" cy="130" r="2.6" class="uc"/><circle cx="350" cy="130" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_T5" data-ag="R/2 ara|Twin-T alt kol ortası" tabindex="0"><line x1="222" y1="146" x2="222" y2="178" class="bacak"/><g transform="translate(222.0 162.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">13k</text></g><circle cx="222" cy="146" r="2.6" class="uc"/><circle cx="222" cy="178" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-trimpot" data-id="TRIM" data-ag="R/2 ara|Trimpot boş bacak|Vf (geri besleme)" tabindex="0"><rect x="216" y="196" width="44" height="14" rx="2" class="trim-govde"/><line x1="222" y1="194" x2="222" y2="197" class="bacak"/><line x1="238" y1="194" x2="238" y2="197" class="bacak"/><line x1="254" y1="194" x2="254" y2="197" class="bacak"/><circle cx="255" cy="203" r="3" class="trim-vida"/><text x="228" y="207" class="govde-yazi" text-anchor="middle">5k</text></g>
+<g class="parca kat-centik tur-tel" data-id="W_A" data-ag="TP2 (çentik çıkışı)" tabindex="0"><line x1="670" y1="194" x2="686" y2="194" class="kablo duz tel-sinyal"/><circle cx="670" cy="194" r="3" class="uc"/><circle cx="686" cy="194" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-tel" data-id="W_B" data-ag="Vf (geri besleme)" tabindex="0"><line x1="750" y1="194" x2="766" y2="194" class="kablo duz tel-sinyal"/><circle cx="750" cy="194" r="3" class="uc"/><circle cx="766" cy="194" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_A" data-ag="+IN B|TP2 (çentik çıkışı)" tabindex="0"><line x1="670" y1="210" x2="734" y2="210" class="bacak"/><g transform="translate(702.0 210.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">1k</text></g><circle cx="670" cy="210" r="2.6" class="uc"/><circle cx="734" cy="210" r="2.6" class="uc"/></g>
+<g class="parca kat-centik tur-direnc" data-id="R_B" data-ag="+IN B|GND" tabindex="0"><line x1="734" y1="242" x2="734" y2="274" class="bacak"/><g transform="translate(734.0 258.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">9,1k</text></g><circle cx="734" cy="242" r="2.6" class="uc"/><circle cx="734" cy="274" r="2.6" class="uc"/></g>
+<g class="parca kat-lm tur-direnc" data-id="R_PA" data-ag="TP2 (çentik çıkışı)|−9 V" tabindex="0"><line x1="670" y1="242" x2="670" y2="290" class="bacak"/><g transform="translate(670.0 266.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="670" cy="242" r="2.6" class="uc"/><circle cx="670" cy="290" r="2.6" class="uc"/></g>
+<g class="parca kat-lm tur-direnc" data-id="R_PB" data-ag="Vf (geri besleme)|−9 V" tabindex="0"><line x1="766" y1="242" x2="766" y2="290" class="bacak"/><g transform="translate(766.0 266.0) rotate(90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="766" cy="242" r="2.6" class="uc"/><circle cx="766" cy="290" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-direnc" data-id="R_S1" data-ag="Sallen-Key orta|TP2 (çentik çıkışı)" tabindex="0"><line x1="878" y1="130" x2="814" y2="130" class="bacak"/><g transform="translate(846.0 130.0) rotate(360.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">33k</text></g><circle cx="878" cy="130" r="2.6" class="uc"/><circle cx="814" cy="130" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-direnc" data-id="R_S2" data-ag="+IN C|Sallen-Key orta" tabindex="0"><line x1="814" y1="98" x2="734" y2="98" class="bacak"/><g transform="translate(774.0 98.0) rotate(360.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">33k</text></g><circle cx="814" cy="98" r="2.6" class="uc"/><circle cx="734" cy="98" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-film" data-id="C_S1" data-ag="Sallen-Key orta|TP3 (alçak geçiren çıkışı)" tabindex="0"><line x1="814" y1="114" x2="782" y2="114" class="bacak"/><g transform="translate(798.0 114.0) rotate(360.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10n</text></g><circle cx="814" cy="114" r="2.6" class="uc"/><circle cx="782" cy="114" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-film" data-id="C_S2" data-ag="+IN C|GND" tabindex="0"><line x1="734" y1="82" x2="734" y2="50" class="bacak"/><g transform="translate(734.0 66.0) rotate(-90.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10n</text></g><circle cx="734" cy="82" r="2.6" class="uc"/><circle cx="734" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-direnc" data-id="R_SG" data-ag="GND|−IN C" tabindex="0"><line x1="750" y1="82" x2="750" y2="50" class="bacak"/><g transform="translate(750.0 66.0) rotate(-90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="750" cy="82" r="2.6" class="uc"/><circle cx="750" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-direnc" data-id="R_SF" data-ag="TP3 (alçak geçiren çıkışı)|−IN C" tabindex="0"><path d="M750 114 Q750 100.0 758.0 100.0 Q766 100.0 766 114" class="bacak"/><g transform="translate(758.0 100.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">5,6k</text></g><circle cx="750" cy="114" r="2.6" class="uc"/><circle cx="766" cy="114" r="2.6" class="uc"/></g>
+<g class="parca kat-ag tur-tel" data-id="W_C" data-ag="TP3 (alçak geçiren çıkışı)" tabindex="0"><line x1="766" y1="82" x2="782" y2="82" class="kablo duz tel-sinyal"/><circle cx="766" cy="82" r="3" class="uc"/><circle cx="782" cy="82" r="3" class="uc"/></g>
+<g class="parca kat-lm tur-direnc" data-id="R_PC" data-ag="TP3 (alçak geçiren çıkışı)|−9 V" tabindex="0"><path d="M782 130 Q782 116.0 790.0 116.0 Q798 116.0 798 130" class="bacak"/><g transform="translate(790.0 116.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="782" cy="130" r="2.6" class="uc"/><circle cx="798" cy="130" r="2.6" class="uc"/></g>
+<g class="parca kat-kazanc tur-film" data-id="C_H" data-ag="+IN D|TP3 (alçak geçiren çıkışı)" tabindex="0"><line x1="766" y1="130" x2="702" y2="130" class="bacak"/><g transform="translate(734.0 130.0) rotate(360.0)"><rect x="-8.0" y="-5.0" width="16" height="10" rx="3" class="film-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">1µ</text></g><circle cx="766" cy="130" r="2.6" class="uc"/><circle cx="702" cy="130" r="2.6" class="uc"/></g>
+<g class="parca kat-kazanc tur-direnc" data-id="R_H" data-ag="+IN D|GND" tabindex="0"><line x1="702" y1="82" x2="702" y2="50" class="bacak"/><g transform="translate(702.0 66.0) rotate(-90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">8,2k</text></g><circle cx="702" cy="82" r="2.6" class="uc"/><circle cx="702" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-kazanc tur-direnc" data-id="R_KG" data-ag="GND|−IN D" tabindex="0"><line x1="686" y1="82" x2="686" y2="50" class="bacak"/><g transform="translate(686.0 66.0) rotate(-90.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="686" cy="82" r="2.6" class="uc"/><circle cx="686" cy="50" r="2.6" class="uc"/></g>
+<g class="parca kat-kazanc tur-direnc" data-id="R_KF" data-ag="TP4 (çıkış)|−IN D" tabindex="0"><path d="M686 98 Q686 84.0 678.0 84.0 Q670 84.0 670 98" class="bacak"/><g transform="translate(678.0 84.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">120k</text></g><circle cx="686" cy="98" r="2.6" class="uc"/><circle cx="670" cy="98" r="2.6" class="uc"/></g>
+<g class="parca kat-lm tur-direnc" data-id="R_PD" data-ag="TP4 (çıkış)|−9 V" tabindex="0"><line x1="670" y1="114" x2="718" y2="114" class="bacak"/><g transform="translate(694.0 114.0) rotate(0.0)"><rect x="-12.0" y="-4.5" width="24" height="9" rx="3" class="direnc-govde"/><text x="0" y="3" class="govde-yazi" text-anchor="middle">10k</text></g><circle cx="670" cy="114" r="2.6" class="uc"/><circle cx="718" cy="114" r="2.6" class="uc"/></g>
+<g class="parca kat-guc tur-kopru" data-id="W_GND" data-ag="GND" tabindex="0"><path d="M990 50 C966.3 106.0 966.3 218.0 990 274" class="kablo tel-gnd"/><circle cx="990" cy="50" r="3" class="uc"/><circle cx="990" cy="274" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-kopru" data-id="W_U1REF" data-ag="GND" tabindex="0"><path d="M206 130 C201.0 104.8 217.0 64.8 238 50" class="kablo tel-gnd"/><circle cx="206" cy="130" r="3" class="uc"/><circle cx="238" cy="50" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-kopru" data-id="W_U2V+" data-ag="+9 V" tabindex="0"><path d="M718 226 C631.6 216.4 625.2 43.6 622 34" class="kablo tel-arti"/><circle cx="718" cy="226" r="3" class="uc"/><circle cx="622" cy="34" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-kopru" data-id="W_U2V-" data-ag="−9 V" tabindex="0"><path d="M718 98 C916.4 107.6 916.4 280.4 910 290" class="kablo tel-eksi"/><circle cx="718" cy="98" r="3" class="uc"/><circle cx="910" cy="290" r="3" class="uc"/></g>
+<g class="parca kat-guc tur-kopru" data-id="W_VR" data-ag="−9 V" tabindex="0"><path d="M798 82 C948.4 92.4 948.4 279.6 942 290" class="kablo tel-eksi"/><circle cx="798" cy="82" r="3" class="uc"/><circle cx="942" cy="290" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-kopru" data-id="W_T1" data-ag="Twin-T çıkışı" tabindex="0"><path d="M254 146 C298.4 116.7 394.4 100.7 446 114" class="kablo tel-sinyal"/><circle cx="254" cy="146" r="3" class="uc"/><circle cx="446" cy="114" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-kopru" data-id="W_T2" data-ag="Twin-T çıkışı" tabindex="0"><path d="M446 130 C516.4 120.3 644.4 152.3 702 194" class="kablo tel-sinyal"/><circle cx="446" cy="130" r="3" class="uc"/><circle cx="702" cy="194" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-kopru" data-id="W_T3" data-ag="Vf (geri besleme)" tabindex="0"><path d="M350 146 C458.6 132.3 666.6 164.3 766 210" class="kablo tel-sinyal"/><circle cx="350" cy="146" r="3" class="uc"/><circle cx="766" cy="210" r="3" class="uc"/></g>
+<g class="parca kat-centik tur-kopru" data-id="W_T4" data-ag="Vf (geri besleme)" tabindex="0"><path d="M238 210 C252.5 168.5 308.5 112.5 350 98" class="kablo tel-sinyal"/><circle cx="238" cy="210" r="3" class="uc"/><circle cx="350" cy="98" r="3" class="uc"/></g>
+<g class="parca kat-ag tur-kopru" data-id="W_TP2" data-ag="TP2 (çentik çıkışı)" tabindex="0"><path d="M670 226 C710.4 176.4 814.4 120.4 878 114" class="kablo tel-sinyal"/><circle cx="670" cy="226" r="3" class="uc"/><circle cx="878" cy="114" r="3" class="uc"/></g>
+<g class="parca kat-ina tur-elektrot" data-id="E_N" data-ag="Elektrot −" tabindex="0"><path d="M62 242 C62 354 72 354 110 354" class="kablo elektrot-kablo"/><circle cx="62" cy="242" r="3.5" class="uc"/><rect x="110" y="346" width="104" height="16" rx="8" class="elektrot-etiket"/><text x="162" y="358" class="elektrot-yazi" text-anchor="middle">Elektrot −</text></g>
+<g class="parca kat-ina tur-elektrot" data-id="E_P" data-ag="Elektrot +" tabindex="0"><path d="M94 242 C94 372 104 372 110 372" class="kablo elektrot-kablo"/><circle cx="94" cy="242" r="3.5" class="uc"/><rect x="110" y="364" width="104" height="16" rx="8" class="elektrot-etiket"/><text x="162" y="376" class="elektrot-yazi" text-anchor="middle">Elektrot +</text></g>
+<g class="parca kat-ina tur-elektrot" data-id="E_R" data-ag="Referans elektrot" tabindex="0"><path d="M110 194 C110 390 120 390 110 390" class="kablo elektrot-kablo"/><circle cx="110" cy="194" r="3.5" class="uc"/><rect x="110" y="382" width="104" height="16" rx="8" class="elektrot-etiket"/><text x="162" y="394" class="elektrot-yazi" text-anchor="middle">Referans</text></g>
+<g class="parca kat-ina tur-prob" data-id="TP1" data-ag="TP1 (ham sinyal)" tabindex="0"><line x1="190" y1="98" x2="190" y2="72" class="prob-cubuk"/><rect x="173" y="57" width="34" height="14" rx="3" class="prob-bayrak"/><text x="190" y="67" class="prob-yazi" text-anchor="middle">CH1</text><circle cx="190" cy="98" r="3.5" class="uc"/></g>
+<g class="parca kat-kazanc tur-prob" data-id="TP4" data-ag="TP4 (çıkış)" tabindex="0"><line x1="670" y1="130" x2="652" y2="130" class="prob-cubuk"/><rect x="618" y="123" width="34" height="14" rx="3" class="prob-bayrak"/><text x="635" y="133" class="prob-yazi" text-anchor="middle">CH2</text><circle cx="670" cy="130" r="3.5" class="uc"/></g>
+<g class="parca kat-guc tur-prob" data-id="GNDP" data-ag="GND" tabindex="0"><line x1="510" y1="50" x2="510" y2="24" class="prob-cubuk"/><rect x="493" y="9" width="34" height="14" rx="3" class="prob-bayrak"/><text x="510" y="19" class="prob-yazi" text-anchor="middle">GND</text><circle cx="510" cy="50" r="3.5" class="uc"/></g>
+</svg></div>
+  <div class="alt">
+    <section class="panel" id="bilgi" aria-live="polite">
+      <h2 id="b-baslik">Bir parça seçin</h2>
+      <p id="b-metin" style="color:var(--soluk)">Breadboard üzerindeki bir parçaya veya deliğe dokunun. Yukarıdaki
+      kat düğmeleriyle devrenin bir bölümünü tek başına gösterebilirsiniz.</p>
+      <div id="b-detay" hidden>
+        <div class="etiket">Takıldığı delikler</div>
+        <ul class="delik-listesi" id="b-delik"></ul>
+        <div class="etiket">Bağlı olduğu noktalar</div>
+        <ul class="delik-listesi" id="b-ag"></ul>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Kurulum sırası</h2>
+      <ol class="adim">
+        <li>Pilleri <b>bağlamadan</b> önce güç tellerini ve köprüleri takın; GND hatlarını 60. sütundaki tel ile birleştirin.</li>
+        <li>AD620'yi 8–11. sütunlara, LM324'ü 40–46. sütunlara kanalın üzerine oturtun.</li>
+        <li><b>Güç</b> katını takın, pilleri bağlayın; AD620 bacak 7'de +9 V, bacak 4'te −9 V ölçün. Sonra pilleri çıkarın.</li>
+        <li>Katları sırayla ekleyin: <b>[2] çentik</b> → <b>[3] alçak geçiren</b> → <b>[4] kazanç</b>. Her katı README'deki jeneratör testiyle deneyin.</li>
+        <li>Trimpotu 50 Hz sinüs verip LM324 bacak 1'de çıkış en küçük olana kadar çevirin.</li>
+        <li>En son <b>[1]</b> katının elektrotlarını bağlayın. CH1'i <code>b10</code>'a, CH2'yi <code>c40</code>'a, prob topraklarını üst GND hattına takın.</li>
+      </ol>
+    </section>
+  </div>
+</div>
+<script>
+const PARCA = {"U1": {"deger": "AD620", "tur": "ic", "kat": "ina", "aciklama": "Enstrümantasyon yükselteci. Çentik solda, 1. bacak sol altta.", "delikler": ["1: f8", "2: f9", "3: f10", "4: f11", "5: e11", "6: e10", "7: e9", "8: e8"]}, "U2": {"deger": "LM324", "tur": "ic", "kat": "lm", "aciklama": "Dörtlü op-amp. Çentik solda, 1. bacak sol altta. A,B: çentik filtre; C: alçak geçiren; D: kazanç.", "delikler": ["1: f40", "2: f41", "3: f42", "4: f43", "5: f44", "6: f45", "7: f46", "8: e46", "9: e45", "10: e44", "11: e43", "12: e42", "13: e41", "14: e40"]}, "BAT1": {"deger": "9 V", "tur": "pil", "kat": "guc", "aciklama": "Üst pil: + ucu +9 V hattına, − ucu GND hattına", "delikler": ["+: P+1", "-: PG1"]}, "BAT2": {"deger": "9 V", "tur": "pil", "kat": "guc", "aciklama": "Alt pil: + ucu GND hattına, − ucu −9 V hattına", "delikler": ["+: QG1", "-: Q-1"]}, "C_B1": {"deger": "10 µF", "tur": "elko", "kat": "guc", "aciklama": "Elektrolitik: uzun bacak (+) +9 V hattına", "delikler": ["+: P+3", "-: PG3"]}, "C_B2": {"deger": "10 µF", "tur": "elko", "kat": "guc", "aciklama": "Elektrolitik: uzun bacak (+) GND hattına, kısa bacak −9 V'a", "delikler": ["+: QG3", "-: Q-3"]}, "C_D1": {"deger": "100 nF", "tur": "seramik", "kat": "guc", "aciklama": "AD620 dekuplaj (+9 V)", "delikler": ["1: P+6", "2: PG6"]}, "C_D2": {"deger": "100 nF", "tur": "seramik", "kat": "guc", "aciklama": "AD620 dekuplaj (−9 V)", "delikler": ["1: QG6", "2: Q-6"]}, "C_D3": {"deger": "100 nF", "tur": "seramik", "kat": "guc", "aciklama": "LM324 dekuplaj (+9 V)", "delikler": ["1: P+50", "2: PG50"]}, "C_D4": {"deger": "100 nF", "tur": "seramik", "kat": "guc", "aciklama": "LM324 dekuplaj (−9 V)", "delikler": ["1: QG50", "2: Q-50"]}, "W_GND": {"deger": "", "tur": "kopru", "kat": "guc", "aciklama": "Üst ve alt GND hatlarını birleştirir", "delikler": ["1: PG60", "2: QG60"]}, "W_U1V+": {"deger": "", "tur": "tel", "kat": "guc", "aciklama": "AD620 bacak 7 → +9 V", "delikler": ["1: a9", "2: P+9"]}, "W_U1V-": {"deger": "", "tur": "tel", "kat": "guc", "aciklama": "AD620 bacak 4 → −9 V", "delikler": ["1: j11", "2: Q-11"]}, "W_U1REF": {"deger": "", "tur": "kopru", "kat": "guc", "aciklama": "AD620 bacak 5 (REF) → GND", "delikler": ["1: d11", "2: PG13"]}, "W_U2V+": {"deger": "", "tur": "kopru", "kat": "guc", "aciklama": "LM324 bacak 4 → +9 V (entegrenin solundan dolaşarak üst hatta)", "delikler": ["1: i43", "2: P+37"]}, "W_U2V-": {"deger": "", "tur": "kopru", "kat": "guc", "aciklama": "LM324 bacak 11 → −9 V (entegrenin sağından dolaşarak alt hatta)", "delikler": ["1: b43", "2: Q-55"]}, "W_VR": {"deger": "", "tur": "kopru", "kat": "guc", "aciklama": "48. sütunun üst yarısını −9 V yapar (C çıkış direnci için)", "delikler": ["1: a48", "2: Q-57"]}, "E_N": {"deger": "Elektrot −", "tur": "elektrot", "kat": "ina", "aciklama": "Biseps üzerindeki 2. elektrot", "delikler": ["j2"]}, "E_P": {"deger": "Elektrot +", "tur": "elektrot", "kat": "ina", "aciklama": "Biseps üzerindeki 1. elektrot", "delikler": ["j4"]}, "E_R": {"deger": "Referans", "tur": "elektrot", "kat": "ina", "aciklama": "Dirsekteki referans elektrodu", "delikler": ["g5"]}, "R_EN": {"deger": "10k", "tur": "direnc", "kat": "ina", "aciklama": "Koruma direnci: elektrot − → AD620 bacak 2", "delikler": ["1: i2", "2: i9"]}, "R_EP": {"deger": "10k", "tur": "direnc", "kat": "ina", "aciklama": "Koruma direnci: elektrot + → AD620 bacak 3", "delikler": ["1: h4", "2: h10"]}, "R_ER": {"deger": "10k", "tur": "direnc", "kat": "ina", "aciklama": "Koruma direnci: referans elektrot → GND", "delikler": ["1: j5", "2: QG5"]}, "W_RG1": {"deger": "", "tur": "tel", "kat": "ina", "aciklama": "AD620 bacak 8 → RG", "delikler": ["1: b8", "2: b7"]}, "R_G": {"deger": "1k", "tur": "direnc", "kat": "ina", "aciklama": "RG: kazancı 50,4 yapar (kanalın üzerinden geçer)", "delikler": ["1: d7", "2: f7"]}, "W_RG2": {"deger": "", "tur": "tel", "kat": "ina", "aciklama": "RG → AD620 bacak 1", "delikler": ["1: g7", "2: g8"]}, "TP1": {"deger": "CH1", "tur": "prob", "kat": "ina", "aciklama": "Osiloskop CH1: ham sinyal (AD620 çıkışı)", "delikler": ["b10"]}, "R_T1": {"deger": "30k", "tur": "direnc", "kat": "centik", "aciklama": "Twin-T üst kol, R'nin 1. parçası", "delikler": ["1: a10", "2: a15"]}, "R_T2": {"deger": "1,8k", "tur": "direnc", "kat": "centik", "aciklama": "Twin-T üst kol, R'nin 2. parçası (30k+1,8k = 31,8k)", "delikler": ["1: b15", "2: b18"]}, "R_T3": {"deger": "30k", "tur": "direnc", "kat": "centik", "aciklama": "Twin-T üst kol, ikinci R'nin 1. parçası", "delikler": ["1: a18", "2: a23"]}, "R_T4": {"deger": "1,8k", "tur": "direnc", "kat": "centik", "aciklama": "Twin-T üst kol, ikinci R'nin 2. parçası", "delikler": ["1: b23", "2: b26"]}, "C_T1": {"deger": "100n", "tur": "film", "kat": "centik", "aciklama": "Twin-T alt kol C", "delikler": ["1: c10", "2: c12"]}, "C_T2": {"deger": "100n", "tur": "film", "kat": "centik", "aciklama": "Twin-T alt kol C", "delikler": ["1: d12", "2: d14"]}, "W_T1": {"deger": "", "tur": "kopru", "kat": "centik", "aciklama": "Alt kolun sonu → üst kolun sonu (çentik çıkışı)", "delikler": ["1: e14", "2: c26"]}, "C_T3": {"deger": "100n", "tur": "film", "kat": "centik", "aciklama": "2C'nin yarısı (üst kol ortası → Vf)", "delikler": ["1: c18", "2: c20"]}, "C_T4": {"deger": "100n", "tur": "film", "kat": "centik", "aciklama": "2C'nin diğer yarısı (paralel)", "delikler": ["1: d18", "2: d20"]}, "R_T5": {"deger": "13k", "tur": "direnc", "kat": "centik", "aciklama": "R/2'nin sabit kısmı (kanalın üzerinden geçer)", "delikler": ["1: e12", "2: f12"]}, "TRIM": {"deger": "5k", "tur": "trimpot", "kat": "centik", "aciklama": "R/2'nin ayarlı kısmı. Orta bacak (wiper) Vf'ye gider. 50 Hz'de çıkış en küçük olana kadar çevirin.", "delikler": ["1: g12", "2: g13", "3: g14"]}, "W_T2": {"deger": "", "tur": "kopru", "kat": "centik", "aciklama": "Çentik çıkışı → LM324 bacak 3 (+IN A)", "delikler": ["1: d26", "2: g42"]}, "W_T3": {"deger": "", "tur": "kopru", "kat": "centik", "aciklama": "2C → Vf (LM324 bacak 7)", "delikler": ["1: e20", "2: h46"]}, "W_T4": {"deger": "", "tur": "kopru", "kat": "centik", "aciklama": "Trimpot orta bacak → Vf (2C ile aynı nokta)", "delikler": ["1: h13", "2: b20"]}, "W_A": {"deger": "", "tur": "tel", "kat": "centik", "aciklama": "LM324 A izleyici: bacak 2 ↔ bacak 1", "delikler": ["1: g40", "2: g41"]}, "W_B": {"deger": "", "tur": "tel", "kat": "centik", "aciklama": "LM324 B izleyici: bacak 6 ↔ bacak 7", "delikler": ["1: g45", "2: g46"]}, "R_A": {"deger": "1k", "tur": "direnc", "kat": "centik", "aciklama": "Ra: geri besleme bölücüsü (çıkış → +IN B)", "delikler": ["1: h40", "2: h44"]}, "R_B": {"deger": "9,1k", "tur": "direnc", "kat": "centik", "aciklama": "Rb: geri besleme bölücüsü (+IN B → GND)", "delikler": ["1: j44", "2: QG44"]}, "R_PA": {"deger": "10k", "tur": "direnc", "kat": "lm", "aciklama": "LM324 çıkış direnci (A) → −9 V", "delikler": ["1: j40", "2: Q-40"]}, "R_PB": {"deger": "10k", "tur": "direnc", "kat": "lm", "aciklama": "LM324 çıkış direnci (B) → −9 V", "delikler": ["1: j46", "2: Q-46"]}, "W_TP2": {"deger": "", "tur": "kopru", "kat": "ag", "aciklama": "Çentik çıkışı (TP2) → alçak geçiren girişi", "delikler": ["1: i40", "2: c53"]}, "R_S1": {"deger": "33k", "tur": "direnc", "kat": "ag", "aciklama": "Sallen-Key R1", "delikler": ["1: d53", "2: d49"]}, "R_S2": {"deger": "33k", "tur": "direnc", "kat": "ag", "aciklama": "Sallen-Key R2 → LM324 bacak 10 (+IN C)", "delikler": ["1: b49", "2: b44"]}, "C_S1": {"deger": "10n", "tur": "film", "kat": "ag", "aciklama": "Sallen-Key C1 (geri besleme, çıkışa)", "delikler": ["1: c49", "2: c47"]}, "C_S2": {"deger": "10n", "tur": "film", "kat": "ag", "aciklama": "Sallen-Key C2 → GND", "delikler": ["1: a44", "2: PG44"]}, "R_SG": {"deger": "10k", "tur": "direnc", "kat": "ag", "aciklama": "Sallen-Key Rg → GND", "delikler": ["1: a45", "2: PG45"]}, "R_SF": {"deger": "5,6k", "tur": "direnc", "kat": "ag", "aciklama": "Sallen-Key Rf (dik takılır)", "delikler": ["1: c45", "2: c46"]}, "W_C": {"deger": "", "tur": "tel", "kat": "ag", "aciklama": "LM324 bacak 8 (TP3) → 47. sütun", "delikler": ["1: a46", "2: a47"]}, "R_PC": {"deger": "10k", "tur": "direnc", "kat": "lm", "aciklama": "LM324 çıkış direnci (C) → −9 V (dik takılır)", "delikler": ["1: d47", "2: d48"]}, "C_H": {"deger": "1µ", "tur": "film", "kat": "kazanc", "aciklama": "Yüksek geçiren C (kutupsuz film)", "delikler": ["1: d46", "2: d42"]}, "R_H": {"deger": "8,2k", "tur": "direnc", "kat": "kazanc", "aciklama": "Yüksek geçiren R → GND", "delikler": ["1: a42", "2: PG42"]}, "R_KG": {"deger": "10k", "tur": "direnc", "kat": "kazanc", "aciklama": "Kazanç Rg → GND", "delikler": ["1: a41", "2: PG41"]}, "R_KF": {"deger": "120k", "tur": "direnc", "kat": "kazanc", "aciklama": "Kazanç Rf (dik takılır)", "delikler": ["1: b41", "2: b40"]}, "R_PD": {"deger": "10k", "tur": "direnc", "kat": "lm", "aciklama": "LM324 çıkış direnci (D) → bacak 11 (−9 V)", "delikler": ["1: c40", "2: c43"]}, "TP4": {"deger": "CH2", "tur": "prob", "kat": "kazanc", "aciklama": "Osiloskop CH2: filtrelenmiş çıkış", "delikler": ["d40"]}, "GNDP": {"deger": "GND", "tur": "prob", "kat": "guc", "aciklama": "Osiloskop prob toprak klipsleri", "delikler": ["PG30"]}};
+const svg = document.getElementById('bb');
+const baslik = document.getElementById('b-baslik'), metin = document.getElementById('b-metin');
+const detay = document.getElementById('b-detay'), dl = document.getElementById('b-delik'), al = document.getElementById('b-ag');
+const TUR = {direnc:'Direnç', film:'Film kondansatör', seramik:'Seramik kondansatör', elko:'Elektrolitik kondansatör',
+  trimpot:'Çok turlu trimpot', ic:'Entegre', tel:'Tel', kopru:'Köprü tel', pil:'Pil', prob:'Osiloskop probu', elektrot:'Elektrot kablosu'};
+function temizle() {
+  svg.classList.remove('odak');
+  svg.querySelectorAll('.secik').forEach(e => e.classList.remove('secik'));
+  svg.querySelectorAll('.delik.yan').forEach(e => e.classList.remove('yan'));
+}
+function liste(el, ogeler) { el.replaceChildren(...ogeler.map(t => { const li = document.createElement('li'); li.textContent = t; return li; })); }
+function aglariVurgula(aglar) {
+  svg.querySelectorAll('.delik').forEach(d => { if (aglar.includes(d.dataset.ag)) d.classList.add('yan'); });
+}
+function parcaSec(g) {
+  temizle(); document.querySelectorAll('.kat-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  const p = PARCA[g.dataset.id]; const aglar = g.dataset.ag ? g.dataset.ag.split('|') : [];
+  svg.classList.add('odak'); g.classList.add('secik'); aglariVurgula(aglar);
+  baslik.textContent = (p.deger ? p.deger + ' · ' : '') + (TUR[p.tur] || p.tur);
+  metin.textContent = p.aciklama || ''; metin.style.color = '';
+  liste(dl, p.delikler); liste(al, aglar); detay.hidden = false;
+}
+function agSec(ad, delik) {
+  temizle(); document.querySelectorAll('.kat-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  if (!ad) return;
+  svg.classList.add('odak'); aglariVurgula([ad]);
+  svg.querySelectorAll('.parca').forEach(g => { if ((g.dataset.ag || '').split('|').includes(ad)) g.classList.add('secik'); });
+  baslik.textContent = ad; metin.textContent = delik + ' deliği bu noktaya bağlı. Vurgulanan parçalar da bu noktaya bağlı.';
+  metin.style.color = ''; detay.hidden = true;
+}
+svg.addEventListener('click', e => {
+  const g = e.target.closest('.parca'); if (g) return parcaSec(g);
+  const d = e.target.closest('.delik'); if (d) return agSec(d.dataset.ag, d.dataset.d);
+  temizle();
+});
+svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.parca')) { e.preventDefault(); parcaSec(e.target.closest('.parca')); } });
+document.querySelectorAll('.kat-btn').forEach(b => b.addEventListener('click', () => {
+  const acik = b.getAttribute('aria-pressed') === 'true';
+  temizle(); document.querySelectorAll('.kat-btn').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  if (acik) { baslik.textContent = 'Bir parça seçin'; detay.hidden = true; return; }
+  b.setAttribute('aria-pressed', 'true'); svg.classList.add('odak');
+  svg.querySelectorAll('.parca.kat-' + b.dataset.kat).forEach(g => g.classList.add('secik'));
+  baslik.textContent = b.querySelector('b').textContent; metin.textContent = b.querySelector('small').textContent;
+  detay.hidden = true;
+}));
+</script>
