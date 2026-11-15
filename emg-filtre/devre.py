@@ -3,13 +3,12 @@ EMG filtre devresinin bileşen değerleri ve katların transfer fonksiyonları.
 
 Sinyal zinciri:
   Elektrotlar -> [1] Enstrümantasyon yükselteci (AD620, G~50)
-              -> [2] Yüksek geçiren (1. derece, ~19 Hz) + tampon
-              -> [3] Aktif Twin-T çentik filtre (50 Hz, Q~2.5)
-              -> [4] Sallen-Key alçak geçiren (2. derece Butterworth, ~480 Hz)
-              -> [5] Kazanç katı (x13)
+              -> [2] Aktif Twin-T çentik filtre (50 Hz, Q~2.5)      LM324 A + B
+              -> [3] Sallen-Key alçak geçiren (2. derece, ~480 Hz)  LM324 C
+              -> [4] Yüksek geçiren (~19 Hz) + kazanç katı (x13)    LM324 D
               -> Osiloskop
 
-Tüm değerler piyasada bulunan standart (E12 / E96 %1) değerlerden seçilmiştir.
+Tüm dirençler kolay bulunan E24 serisindendir (gerekirse iki direnç seri).
 Benzetim ve ölçüm analizi bu dosyadaki değerleri kullanır; devrede bir değeri
 değiştirirseniz burada da değiştirin.
 """
@@ -33,26 +32,26 @@ class Degerler:
     # [1] AD620: G = 1 + 49.4k / RG
     RG: float = 1.0e3
 
-    # [2] Yüksek geçiren RC: fc = 1 / (2*pi*R*C)
+    # [4] Yüksek geçiren RC (kazanç katının girişinde): fc = 1 / (2*pi*R*C)
     R_hp: float = 8.2e3
     C_hp: float = 1.0e-6
 
-    # [3] Twin-T: seri kollar R, R ve C, C; şönt kollar R/2 ve 2C
-    R_tt: float = 31.6e3     # %1
-    R_tt_yarim: float = 15.8e3  # devrede 14.7k + 2k trimpot (çentik derinliği ayarı)
+    # [2] Twin-T: seri kollar R, R ve C, C; şönt kollar R/2 ve 2C
+    R_tt: float = 31.8e3     # 30k + 1,8k seri
+    R_tt_yarim: float = 15.9e3  # devrede 13k + 5k çok turlu trimpot (çentik ayarı)
     C_tt: float = 100e-9     # film kondansatör
     C_tt_cift: float = 200e-9  # 2 x 100 nF paralel
     # Geri besleme bölücü: k = Rb / (Ra + Rb)  ->  Q = 1 / (4 (1 - k))
     Ra_tt: float = 1.0e3
     Rb_tt: float = 9.1e3
 
-    # [4] Sallen-Key eşit elemanlı: f = 1/(2*pi*R*C), K = 1 + Rf/Rg, Q = 1/(3-K)
+    # [3] Sallen-Key eşit elemanlı: f = 1/(2*pi*R*C), K = 1 + Rf/Rg, Q = 1/(3-K)
     R_sk: float = 33e3
     C_sk: float = 10e-9
-    Rf_sk: float = 5.9e3     # %1
+    Rf_sk: float = 5.6e3
     Rg_sk: float = 10e3
 
-    # [5] Evirmeyen kazanç katı: G = 1 + Rf/Rg
+    # [4] Evirmeyen kazanç katı: G = 1 + Rf/Rg
     Rf_g: float = 120e3
     Rg_g: float = 10e3
 
