@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>TP TON TOF Simülatörü</title>
+<style>
+  :root { --bg:#fff; --line:#000; --on:#00b050; --blk:#dbe5f5; --txt:#000; }
+  body { margin:0; background:var(--bg); font-family: "Courier New", monospace; color:var(--txt); }
+  .wrap { display:flex; gap:24px; padding:16px; align-items:flex-start; }
+  svg text { font-family:"Courier New", monospace; font-size:12px; }
+  .viz { width:330px; border:1px solid #bbb; box-shadow:0 2px 8px #0003; background:#fff; }
+  .viz .title { background:#f3f3f3; color:#888; font:13px Segoe UI, Arial; padding:6px 8px; border-bottom:1px solid #ccc; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; row-gap:50px; padding:70px 40px 70px; justify-items:center; }
+  .btn { width:68px; height:68px; border-radius:50%; cursor:pointer; border:none;
+         background:radial-gradient(circle at 50% 40%, #e8e8e8, #8a8a8a 60%, #5a5a5a);
+         box-shadow: inset 0 0 0 6px #c9c9c9, inset 0 0 0 8px #777, 0 2px 3px #0006; }
+  .btn.down { background:radial-gradient(circle at 50% 55%, #9a9a9a, #6a6a6a 60%, #444);
+              box-shadow: inset 0 0 0 6px #b0b0b0, inset 0 0 0 8px #555, inset 0 3px 6px #000a; }
+  .lamp { width:68px; height:68px; border-radius:50%;
+          background:radial-gradient(circle at 50% 30%, #a0602a, #4a2405 65%);
+          box-shadow: inset 0 0 0 5px #ddd, inset 0 0 0 7px #888, 0 2px 3px #0006; }
+  .lamp.on { background:radial-gradient(circle at 50% 30%, #fff7a0, #ffcc00 45%, #e08a00 75%);
+             box-shadow: inset 0 0 0 5px #ddd, inset 0 0 0 7px #888, 0 0 18px #ffcc00; }
+  .lbl { font:11px Arial; color:#555; text-align:center; margin-top:4px; }
+  .clock { font:13px Arial; padding:4px 16px; color:#333; }
+</style>
+</head>
+<body>
+<div class="clock" id="clock">t = 0.0 s</div>
+<div class="wrap">
+  <svg id="ladder" width="760" height="320"></svg>
+  <div class="viz">
+    <div class="title">Visualization</div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+<script>
+const PT = 10000;
+// IEC 61131-3 timer davranışı
+class TP  { constructor(){this.Q=false;this.ET=0;this.prevIN=false;this.start=0;}
+  call(IN,t){ if(IN&&!this.prevIN&&!this.Q){this.Q=true;this.start=t;}
+    if(this.Q){this.ET=Math.min(t-this.start,PT); if(this.ET>=PT) this.Q=false;}
+    else if(!IN) this.ET=0;
+    this.prevIN=IN; } }
+class TON { constructor(){this.Q=false;this.ET=0;this.start=null;}
+  call(IN,t){ if(IN){ if(this.start===null)this.start=t; this.ET=Math.min(t-this.start,PT); this.Q=this.ET>=PT; }
+    else {this.start=null;this.ET=0;this.Q=false;} } }
+class TOF { constructor(){this.Q=false;this.ET=0;this.start=null;}
+  call(IN,t){ if(IN){this.Q=true;this.ET=0;this.start=null;}
+    else if(this.Q){ if(this.start===null)this.start=t; this.ET=Math.min(t-this.start,PT); if(this.ET>=PT)this.Q=false; } } }
+
+const S = { START:false, START2:false, START3:false, LED:false, LED2:false, LED3:false };
+const timers = [new TP(), new TON(), new TOF()];
+let now = 0;
+const rungs = [
+  {n:1, inp:'START',  fb:'TP_0',  type:'TP',  out:'LED',  et:'T0'},
+  {n:2, inp:'START2', fb:'TON_0', type:'TON', out:'LED2', et:'T1'},
+  {n:3, inp:'START3', fb:'TOF_0', type:'TOF', out:'LED3', et:'T2'},
+];
+function cycle(){
+  rungs.forEach((r,i)=>{ timers[i].call(S[r.inp], now); S[r.out]=timers[i].Q; });
+  render();
+}
+function fmt(ms){ const s=Math.floor(ms/1000), r=ms%1000; return 'T#'+(s?s+'S':'')+(r||!s?Math.round(r)+'MS':''); }
+function render(){
+  const g=document.getElementById('ladder'); const on='var(--on)', off='#000';
+  let h='<line x1="14" y1="0" x2="14" y2="300" stroke="#1a8a7a" stroke-width="3"/>';
+  rungs.forEach((r,i)=>{
+    const y=i*100, ly=y+45, t=timers[i], ci=S[r.inp], q=t.Q;
+    const c1=ci?on:off, c2=q?on:off, w=ci||q?3:1;
+    h+=`<text x="2" y="${y+12}" fill="#1a8a7a" font-size="10">${r.n}</text>
+    <line x1="14" y1="${ly}" x2="90" y2="${ly}" stroke="${on}" stroke-width="3"/>
+    <text x="80" y="${y+28}">${r.inp}</text>
+    <line x1="90" y1="${ly-9}" x2="90" y2="${ly+9}" stroke="${c1}" stroke-width="2"/>
+    <line x1="98" y1="${ly-9}" x2="98" y2="${ly+9}" stroke="${c1}" stroke-width="2"/>
+    ${ci?`<rect x="90" y="${ly-9}" width="8" height="18" fill="${on}" opacity=".5"/>`:''}
+    <line x1="98" y1="${ly}" x2="162" y2="${ly}" stroke="${c1}" stroke-width="${ci?3:1}"/>
+    <line x1="140" y1="${ly+15}" x2="162" y2="${ly+15}" stroke="#000"/>
+    <text x="100" y="${ly+19}" fill="#9a8a00">T#10S</text>
+    <text x="180" y="${y+12}">${r.fb}</text>
+    <rect x="162" y="${y+18}" width="78" height="62" fill="var(--blk)" stroke="#3a5a9a"/>
+    <text x="201" y="${y+32}" text-anchor="middle" font-weight="bold">${r.type}</text>
+    <text x="166" y="${ly+4}">IN</text><text x="166" y="${ly+19}">PT</text>
+    <text x="228" y="${ly+4}">Q</text><text x="222" y="${ly+19}">ET</text>
+    <circle cx="201" cy="${y+50}" r="13" fill="#ccc" stroke="#666"/>
+    <line x1="201" y1="${y+50}" x2="${201+11*Math.sin(t.ET/PT*2*Math.PI)}" y2="${y+50-11*Math.cos(t.ET/PT*2*Math.PI)}" stroke="#c00" stroke-width="2"/>
+    <line x1="240" y1="${ly}" x2="700" y2="${ly}" stroke="${c2}" stroke-width="${q?3:1}"/>
+    <line x1="240" y1="${ly+15}" x2="252" y2="${ly+15}" stroke="#000"/>
+    <text x="256" y="${ly+19}">${r.et}</text>
+    <rect x="290" y="${ly+6}" width="92" height="17" fill="#ffffc8" stroke="#aaa"/>
+    <text x="294" y="${ly+19}">${fmt(Math.round(t.ET))}</text>
+    <text x="700" y="${y+28}" text-anchor="middle" fill="${q?on:'#8a0000'}">${r.out}</text>
+    <path d="M693 ${ly-9} Q688 ${ly} 693 ${ly+9} M707 ${ly-9} Q712 ${ly} 707 ${ly+9}" fill="none" stroke="${c2}" stroke-width="2"/>
+    ${q?`<rect x="694" y="${ly-7}" width="12" height="14" fill="${on}" opacity=".5"/>`:''}
+    <text x="720" y="${ly+4}" fill="${q?on:'#888'}" font-size="11">${q?'TRUE':'FALSE'}</text>
+    <line x1="0" y1="${y+99}" x2="760" y2="${y+99}" stroke="#ddd"/>`;
+  });
+  g.innerHTML=h;
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  rungs.forEach(r=>{
+    grid.insertAdjacentHTML('beforeend',
+      `<div><button class="btn ${S[r.inp]?'down':''}" data-v="${r.inp}"></button><div class="lbl">${r.inp}</div></div>
+       <div><div class="lamp ${S[r.out]?'on':''}"></div><div class="lbl">${r.out}</div></div>`);
+  });
+  grid.querySelectorAll('.btn').forEach(b=>{
+    b.onpointerdown=()=>{S[b.dataset.v]=true;cycle();};
+    b.onpointerup=b.onpointerleave=()=>{ if(S[b.dataset.v]){S[b.dataset.v]=false;cycle();} };
+  });
+  document.getElementById('clock').textContent=`t = ${(now/1000).toFixed(1)} s`;
+}
+// Ekran görüntüleri için deterministik zaman kontrolü
+window.sim = { set:(k,v)=>{S[k]=v;cycle();}, advance:(ms)=>{ for(let i=0;i<ms;i+=10){now+=10;cycle();} } , S };
+// Gerçek zamanlı çalışma (manuel kullanım)
+if(!location.hash.includes('manual')) {
+  let last=performance.now();
+  setInterval(()=>{ const p=performance.now(); now+=p-last; last=p; cycle(); },20);
+}
+render();
+</script>
+</body>
+</html>
