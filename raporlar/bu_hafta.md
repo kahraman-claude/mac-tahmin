@@ -1,6 +1,6 @@
 # Tahminler
 
-Son güncelleme: 2026-11-20 15:38 (UTC)
+Son güncelleme: 2026-11-21 06:00 (UTC)
 
 Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı. İstatistiksel tahmindir, bahis tavsiyesi değildir.
 
@@ -38,7 +38,6 @@ Model olasılıkları; parantez içinde varsa düzeltilmiş piyasa olasılığı
 
 | Tarih (TR saati) | Maç | 1 | X | 2 | 2,5 Üst | KG Var | En olası skor |
 |---|---|---|---|---|---|---|---|
-| 20.11 23:00 | Ath Bilbao – Espanol | %53 (%68) | %26 (%19) | %21 (%13) | %45 | %48 | 1-0 %13 |
 | 21.11 16:00 | Alaves – La Coruna | %41 (%45) | %28 (%28) | %31 (%27) | %44 | %50 | 1-1 %13 |
 | 21.11 18:15 | Vallecano – Valencia | %47 (%52) | %28 (%26) | %25 (%22) | %43 | %48 | 1-1 %13 |
 | 21.11 20:30 | Sevilla – Betis | %34 (%32) | %27 (%27) | %39 (%41) | %50 | %55 | 1-1 %13 |
